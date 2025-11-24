@@ -12,6 +12,7 @@ type CreatePostFormProps = React.ComponentProps<"form"> & {
   onCreated?: () => void;
 };
 
+
 export default function CreatePostForm({
   className,
   onCancel,
@@ -20,40 +21,43 @@ export default function CreatePostForm({
 }: CreatePostFormProps) {
   const [mediaUrl, setMediaUrl] = useState("");
   const [caption, setCaption] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const hasMediaUrl = mediaUrl.trim().length > 0;
-  const isFormValid = hasMediaUrl;
+  
+  const hasMedia = imageFile !== null || mediaUrl.trim().length > 0;
+  const isFormValid = hasMedia;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
+  
     if (!isFormValid || isSubmitting) return;
-
+  
     const currentUser = getCurrentUser();
     if (!currentUser) {
       setError("You must be logged in to create a post");
       return;
     }
-
+  
     setError("");
     setSuccess("");
     setIsSubmitting(true);
-
+  
     try {
       await createPost({
-        mediaUrl: mediaUrl.trim(),
+        mediaUrl: mediaUrl.trim() || undefined,
         mediaAlt: caption.trim() || "",
         // Missing loc for formula, therefore empty string
         locationId: "",
+        imageFile,
       });
-
+  
       setSuccess("Post created successfully!");
       setMediaUrl("");
       setCaption("");
-
+      setImageFile(null);
+  
       if (onCreated) {
         onCreated();
       }
@@ -65,17 +69,20 @@ export default function CreatePostForm({
       setIsSubmitting(false);
     }
   }
+  
 
   function handleCancelClick() {
     setMediaUrl("");
     setCaption("");
+    setImageFile(null);
     setError("");
     setSuccess("");
-
+  
     if (onCancel) {
       onCancel();
     }
   }
+  
 
   return (
     <form
@@ -98,20 +105,22 @@ export default function CreatePostForm({
       </Field>
 
       <Field>
-        <FieldLabel htmlFor="mediaUrl">Image URL</FieldLabel>
-        <FieldDescription>
-          Paste a link to the image you want to share.
-        </FieldDescription>
-        <Input
-          id="mediaUrl"
-          type="url"
-          required
-          placeholder="https://example.com/your-photo.jpg"
-          value={mediaUrl}
-          onChange={(e) => setMediaUrl(e.target.value)}
-          className="min-h-20"
-        />
+      <FieldLabel htmlFor="image">Upload an image</FieldLabel>
+      <FieldDescription>
+        You can upload a photo from your device. If you prefer, you can just paste an image URL above.
+      </FieldDescription>
+      <Input
+        id="image"
+        type="file"
+        accept="image/png, image/jpeg"
+        className="border-2 border-dashed"
+        onChange={(e) => {
+          const file = e.target.files?.[0] || null;
+          setImageFile(file);
+        }}
+      />
       </Field>
+
 
       {error && (
         <div

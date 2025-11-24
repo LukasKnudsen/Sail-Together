@@ -47,22 +47,29 @@ export interface Comment {
  * Post with joined relations (for API responses)
  * Use this when you need the full user, location, and comments
  */
-export interface PostWithRelations extends Omit<Post, "userId" | "locationId"> {
+export type PostWithRelations = {
+  id: string;
+
+  mediaUrl: string;
+  mediaAlt: string | null;
+  createdAt: string; 
+
+  likeCount: number;
+  commentCount: number;
+  hasLiked: boolean;
+
   user: {
     id: string;
     name: string;
     avatarUrl: string;
   };
+
   location?: {
     id: string;
     name: string;
-    address?: string;
-    longitude?: number;
-    latitude?: number;
   };
-  comments?: CommentWithUser[];
-  hasLiked?: boolean; // Computed based on current user
-}
+};
+
 
 /**
  * Comment with joined user (for API responses)

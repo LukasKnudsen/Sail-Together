@@ -1,13 +1,34 @@
-// React hooks wrapping the API callsimport { useEffect, useState } from "react";
 import { useEffect, useState } from "react";
-import { getPosts } from "./api";
+import { getPosts, type Post } from "./api";
 
-export function usePosts() {
-    const [data, setData] = useState<typeof getPosts>([]);
+export function usePosts(limit = 20) {
+  const [data, setData] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-    useEffect(() => {
-        getPosts().then(setData);
-    }, []);
+  useEffect(() => {
+    let isMounted = true;
 
-    return data;
+    setIsLoading(true);
+    getPosts(limit)
+      .then((posts) => {
+        if (!isMounted) return;
+        setData(posts);
+        setError(null);
+      })
+      .catch((err: any) => {
+        if (!isMounted) return;
+        setError(err instanceof Error ? err : new Error("Failed to load posts"));
+      })
+      .finally(() => {
+        if (!isMounted) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [limit]);
+
+  return { data, isLoading, error };
 }

@@ -1,66 +1,37 @@
-import type { Post } from "@/types/post";
-import avatarImage from "@/assets/avatar.png";
-
-export const POSTS: Post[] = [
-  {
-    id: "1",
-    userId: "u1", // Would reference actual user ID
-    mediaUrl: "/beach.jpg",
-    mediaAlt: "nice beach",
-    locationId: "loc-9", // St. Thomas
-    createdAt: "2025-11-12T10:00:00Z",
-    likeCount: 5,
-    commentCount: 3,
-  },
-  {
-    id: "2",
-    userId: "u1",
-    mediaUrl: "/greenland.jpg",
-    mediaAlt: "very cold",
-    locationId: "loc-10", // Nuuk, Greenland
-    createdAt: "2025-11-11T10:00:00Z",
-    likeCount: 10,
-    commentCount: 2,
-  },
-  {
-    id: "3",
-    userId: "u1",
-    mediaUrl: "/copenhagen.jpg",
-    mediaAlt: "funny houses",
-    locationId: "loc-11", // Copenhagen
-    createdAt: "2025-11-10T10:00:00Z",
-    likeCount: 8,
-    commentCount: 5,
-  },
-];
-
-// Helper to get posts with relations for display
+import { getPosts } from "@/features/posts/api";
 import type { PostWithRelations } from "@/types/post";
-import { LOCATIONS } from "./locations";
 
-const MOCK_USER = {
-  id: "u1",
-  name: "Amelia R.",
-  avatarUrl: avatarImage,
-};
+export async function getPostsWithRelations(): Promise<PostWithRelations[]> {
+  const dbPosts = await getPosts();
 
-export function getPostsWithRelations(): PostWithRelations[] {
-  return POSTS.map((post) => {
-    const location = post.locationId ? LOCATIONS.find((loc) => loc.id === post.locationId) : undefined;
-    return {
-      ...post,
-      user: MOCK_USER,
-      location: location
-        ? {
-            id: location.id,
-            name: location.name,
-            address: location.address,
-            longitude: location.longitude,
-            latitude: location.latitude,
-          }
-        : undefined,
-      hasLiked: post.id === "2", // Mock: second post is liked
-    };
-  });
+  const dbWithRelations: PostWithRelations[] = dbPosts.map((p) => ({
+    id: p.id,
+    mediaUrl: p.mediaUrl,
+    mediaAlt: p.mediaAlt ?? null,
+    createdAt:
+      p.createdAt instanceof Date
+        ? p.createdAt.toISOString()
+        : String(p.createdAt),
+
+    likeCount: p.likeCount ?? 0,
+    commentCount: p.commentCount ?? 0,
+    hasLiked: false,
+
+    user: {
+      id: p.userId ?? "",
+      name: p.userName ?? "Unknown sailor",
+      avatarUrl: "", 
+    },
+
+    location: p.locationId
+      ? {
+          id: p.locationId,
+          name: p.locationName ?? "Unknown location",
+        }
+      : undefined,
+  }));
+
+  return dbWithRelations.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 }
-

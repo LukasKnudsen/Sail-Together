@@ -79,6 +79,12 @@ export function PostCard({ post }: PostCardProps) {
         />
       </figure>
 
+      {mediaAlt && (
+        <p className="mt-2 px-2 text-sm text-gray-800 break-words">
+          {mediaAlt}
+        </p>
+      )}
+
       <Actions
         liked={liked ?? false}
         likeCount={likeCount}
