@@ -1,8 +1,7 @@
 import type { Feature, FeatureCollection, Point } from "geojson";
-import type { EventWithRelations } from "@/types/event";
+import type { EventWithRelations, EventAttributes } from "@/db/types/Event";
 import type { CategorySlug } from "@/types/category";
 import { getEventWithRelations } from "./dataHelpers";
-import type { Event } from "@/types/event";
 
 export type EventFeatureProperties = {
   id: string;
@@ -28,7 +27,7 @@ function eventToFeature(event: EventWithRelations): EventFeature {
   };
 }
 
-export function eventsToGeoJson(events: Event[]): EventFeatureCollection {
+export function eventsToGeoJson(events: EventAttributes[]): EventFeatureCollection {
   return {
     type: "FeatureCollection",
     features: events

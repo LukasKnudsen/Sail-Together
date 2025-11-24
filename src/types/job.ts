@@ -11,7 +11,7 @@ export interface Job {
   date: Date | string;
   vessel: string;
   isFavorite?: boolean;
-  locationId: string; // Foreign key to Location table
+  locationId?: string; // Foreign key to Location table
   createdById?: string; // Foreign key to User table (optional)
   description: string; // Moved from JobMeta
   

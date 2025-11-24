@@ -1,33 +1,42 @@
-import type { Job } from "@/types/job";
+import type { JobWithRelations } from "@/types/job";
+import { useJobStore } from "@/store/useJobStore";
 import { Link } from "react-router-dom";
 import { Media, MediaFallback } from "./ui/media";
 import { CalendarDays, Clock, Heart, MapPin, Ship } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getJobWithRelations } from "@/lib/dataHelpers";
+import { format } from "date-fns";
 
 interface JobsSidebarProps {
-  jobs: Job[];
+  jobs: JobWithRelations[];
+  onToggleFavorite?: (jobId: string) => void;
 }
 
-export default function JobsSidebar({ jobs }: JobsSidebarProps) {
+export default function JobsSidebar({ jobs, onToggleFavorite }: JobsSidebarProps) {
+  const { setHoveredJobId } = useJobStore();
+  const handleFavoriteClick = (e: React.MouseEvent, jobId: string) => {
+    e.preventDefault();
+    onToggleFavorite?.(jobId);
+  };
+
   return (
     <>
       <h2 className="font-medium">{jobs.length} jobs within map area</h2>
 
       <ul role="list" className="space-y-4">
         {jobs.map((job) => {
-          const jobWithRelations = getJobWithRelations(job);
           return (
             <li key={job.id} role="listitem">
               <Link
                 tabIndex={0}
                 to={`/jobs/${job.id}`}
-                state={{ job: jobWithRelations }}
                 aria-label={`View job offer for ${job.title}`}
+                onMouseEnter={() => setHoveredJobId(job.id)}
+                onMouseLeave={() => setHoveredJobId(null)}
                 className="flex min-w-0 flex-row gap-2 overflow-hidden hover:cursor-pointer"
               >
                 <Media className="size-24 rounded-3xl">
                   <Heart
+                    onClick={(e) => handleFavoriteClick(e, job.id)}
                     className={cn(
                       "absolute top-2.5 right-2.5 cursor-pointer transition",
                       job.isFavorite
@@ -55,7 +64,9 @@ export default function JobsSidebar({ jobs }: JobsSidebarProps) {
                         <dt className="sr-only">Date</dt>
                         <CalendarDays className="text-muted-foreground size-5 shrink-0" />
                         <dd>
-                          <time dateTime={String(job.date)}>{String(job.date)}</time>
+                          <time dateTime={job.date ? new Date(job.date).toISOString() : ""}>
+                            {job.date ? format(new Date(job.date), "MMM d, yyyy") : "Date not set"}
+                          </time>
                         </dd>
                       </div>
                     </div>
@@ -70,7 +81,7 @@ export default function JobsSidebar({ jobs }: JobsSidebarProps) {
                       <div className="flex min-w-0 items-center gap-1">
                         <dt className="sr-only">Location</dt>
                         <MapPin className="text-muted-foreground size-5 shrink-0" />
-                        <dd>{jobWithRelations.location.name}</dd>
+                        <dd>{job.location.address}</dd>
                       </div>
                     </div>
                   </dl>

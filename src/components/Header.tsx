@@ -11,7 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import { CircleUserRound, Heart, Map, Menu, Settings } from "lucide-react";
 
 interface Navbar {
@@ -27,11 +27,12 @@ const NAVIGATION: Navbar[] = [
 ];
 
 export default function Header() {
-  const [user, setUser] = useState<Parse.User | null | undefined>(undefined);
+  const [user, setUser] = useState<Parse.User | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setUser(getCurrentUser());
+    const u = getCurrentUser();
+    setUser(u ? (u as unknown as Parse.User) : null);
   }, []);
 
   async function handleSignOut() {
@@ -41,7 +42,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-background sticky top-0 z-50 w-full py-2">
+    <header className="bg-card border-border sticky top-0 z-50 w-full py-2">
       <div className="flex flex-row items-center">
         {/* LOGO */}
         <h1 className="text-2xl font-extrabold text-nowrap text-blue-500 select-none">Open Sail</h1>

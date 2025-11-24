@@ -12,6 +12,7 @@
     "seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
+    "@mapbox/search-js-react": "^1.5.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
@@ -19,18 +20,21 @@
     "@uidotdev/usehooks": "^2.4.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
+    "events": "^3.3.0",
     "lucide-react": "^0.546.0",
     "mapbox-gl": "^3.16.0",
-    "parse": "^3.5.1",
-    "parse-server": "^4.10.20",
+    "parse": "^7.0.2",
+    "parse-server": "^8.4.0",
     "react": "^19.1.1",
     "react-day-picker": "^9.11.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.4",
+    "swr": "^2.3.6",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@openinc/parse-server-schema": "^3.0.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.15",
     "@types/node": "^24.9.1",

@@ -19,7 +19,7 @@ export async function createSchemas() {
   }
 
   // helper for idempotent schema creation
-  async function safeSave(schema: Parse.Schema, name: string) {
+  async function safeSave(schema: any, name: string) {
     try {
       await schema.save();
       console.log(`✅ Created schema: ${name}`);
@@ -33,14 +33,6 @@ export async function createSchemas() {
   }
 
   await safeSave(
-    new Parse.Schema("Category")
-      .addString("slug", { required: true })
-      .addString("name", { required: true })
-      .addString("description"),
-    "Category"
-  );
-
-  await safeSave(
     new Parse.Schema("Location")
       .addString("name", { required: true })
       .addString("address", { required: true })
@@ -49,21 +41,45 @@ export async function createSchemas() {
     "Location"
   );
 
-  await safeSave(
-    new Parse.Schema("Event")
-      .addString("title", { required: true })
-      .addString("description")
-      .addBoolean("isFavorite")
-      .addDate("startDate", { required: true })
-      .addDate("endDate")
-      .addPointer("categoryId", "Category", { required: true })
-      .addPointer("locationId", "Location", { required: true })
-      .addPointer("createdById", "_User")
-      .addString("priceKind", { required: true })
-      .addNumber("priceAmount")
-      .addString("priceCurrency"),
-    "Event"
-  );
+  // Create Event schema with all fields
+  // Note: If Event table exists with only default fields, delete it in Back4App first
+  // Parse Server's update() doesn't add all fields at once to existing schemas
+  const eventSchema = new Parse.Schema("Event");
+  eventSchema.addString("title", { required: true });
+  eventSchema.addString("description");
+  eventSchema.addBoolean("isFavorite");
+  eventSchema.addDate("startDate", { required: true });
+  eventSchema.addDate("endDate");
+  eventSchema.addString("categorySlug", { required: true });
+  eventSchema.addPointer("locationId", "Location", { required: true });
+  eventSchema.addPointer("createdById", "_User");
+  eventSchema.addString("priceKind", { required: true });
+  eventSchema.addNumber("priceAmount");
+  eventSchema.addString("priceCurrency");
+
+  try {
+    await eventSchema.save();
+    console.log("✅ Created Event schema with all fields");
+  } catch (err: any) {
+    if (err.code === 103) {
+      console.log("⚠️ Event schema already exists.");
+      console.log(
+        "⚠️ If it only has default fields, delete it in Back4App dashboard and run migration again."
+      );
+      console.log("⚠️ Or manually add fields one by one using update()");
+
+      // Try to update with all fields (may not work if schema is empty)
+      try {
+        await eventSchema.update();
+        console.log("✅ Updated Event schema");
+      } catch (updateErr: any) {
+        console.log("❌ Update failed:", updateErr.message);
+        console.log("💡 Solution: Delete Event table in Back4App, then run migration again");
+      }
+    } else {
+      throw err;
+    }
+  }
 
   await safeSave(
     new Parse.Schema("Job")

@@ -17,7 +17,7 @@ function getUserName(name: string) {
   return name
     .trim()
     .split(" ")
-    .map(s => s[0]?.toUpperCase() ?? "")
+    .map((s) => s[0]?.toUpperCase() ?? "")
     .filter(Boolean)
     .slice(0, 2)
     .join("");
@@ -44,7 +44,7 @@ export function PostCard({ post }: PostCardProps) {
     createdAt,
     likeCount: initialLikes,
     hasLiked,
-    commentCount
+    commentCount,
   } = post;
 
   const [liked, setLiked] = useState(hasLiked);
@@ -54,10 +54,10 @@ export function PostCard({ post }: PostCardProps) {
   function toggleLike() {
     if (liked) {
       setLiked(false);
-      setLikeCount(c => c - 1);
+      setLikeCount((c) => c - 1);
     } else {
       setLiked(true);
-      setLikeCount(c => c + 1);
+      setLikeCount((c) => c + 1);
     }
   }
 
@@ -108,9 +108,7 @@ function Header(props: {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="truncate font-medium">{name}</p>
-          {locationName && (
-            <span className="truncate text-xs text-gray-500">• {locationName}</span>
-          )}
+          {locationName && <span className="truncate text-xs text-gray-500">• {locationName}</span>}
         </div>
         <p className="text-xs text-gray-400">{timeAgo(createdAt)}</p>
       </div>
