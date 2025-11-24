@@ -156,7 +156,7 @@ export default function EditProfileForm({
           id="name"
           type="text"
           required
-          placeholder="John Doe"
+          placeholder="Jack Sparrow"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
