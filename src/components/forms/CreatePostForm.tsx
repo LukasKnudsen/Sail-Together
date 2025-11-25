@@ -87,7 +87,7 @@ export default function CreatePostForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn("flex flex-col gap-8 py-4", className)}
+      className={cn("flex flex-col gap-8", className)}
       {...props}
     >
       <Field>
