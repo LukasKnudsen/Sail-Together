@@ -125,11 +125,11 @@ export default function UserProfileView() {
         )}
 
         {/* Member Since */}
-        {profile.joinedDate && (
+        {profile.createdAt && (
           <div className="mt-6 border-t pt-6">
             <p className="text-muted-foreground text-sm">
               Member since{" "}
-              {new Date(profile.joinedDate).toLocaleDateString("en-US", {
+              {new Date(profile.createdAt).toLocaleDateString("en-US", {
                 month: "long",
                 year: "numeric",
               })}

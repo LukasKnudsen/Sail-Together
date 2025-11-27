@@ -10,7 +10,6 @@ export interface User {
   avatarUrl?: string;
   rating?: number;
   role?: string;
-  joinedDate: Date | string;
   location?: string; // Free-form location string
   about?: string;
   skills?: string[]; // Array is OK for simple tags

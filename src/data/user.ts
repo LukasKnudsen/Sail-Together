@@ -9,7 +9,7 @@ export const USER: User = {
   avatarUrl: avatarClara,
   rating: 4,
   role: "Stewardess",
-  joinedDate: "2025-01-15T10:00:00Z",
+  createdAt: "2025-01-15T10:00:00Z",
   location: "Copenhagen, Denmark",
   about:
     "Detail-oriented and experienced stewardess with a passion for creating exceptional guest experiences aboard luxury yachts.",
