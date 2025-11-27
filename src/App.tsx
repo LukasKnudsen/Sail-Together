@@ -12,6 +12,7 @@ import SignUpPage from "@/pages/auth/SignUp";
 import LoginPage from "@/pages/auth/Login";
 import GuestRoute from "@/components/GuestRoute";
 import AuthLayout from "@/layouts/AuthLayout";
+import ProfileEdit from "./pages/ProfileEdit";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/events" element={<Events />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/edit" element={<ProfileEdit />} />
       </Route>
 
       <Route element={<AuthLayout />}>

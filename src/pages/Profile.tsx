@@ -12,8 +12,11 @@ import IconMedal from "@/components/icons/IconMedal";
 import VesselIcon from "@/components/icons/VesselIcon";
 import GlobeIcon from "@/components/icons/GlobeIcon";
 import { Media, MediaFallback } from "@/components/ui/media";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
+  const navigate = useNavigate();
   const userProfile = getUserProfile();
   const {
     avatarUrl,
@@ -45,7 +48,10 @@ export default function Profile() {
           <h1 id="profile-name" className="text-2xl font-bold">
             {name}
           </h1>
-
+          {/* Edit Profile Button - matching Add Listing style */}
+          <Button variant="secondary" onClick={() => navigate("/profile/edit")} className="mt-2">
+            Edit Profile
+          </Button>
           <div className="flex items-center gap-2">
             <Rating value={rating ?? 0} max={5} size={24} />
             <span className="sr-only">{rating} out of 5 stars</span>

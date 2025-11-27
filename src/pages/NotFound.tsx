@@ -8,7 +8,7 @@ export default function NotFound() {
     <main className="flex min-h-svh items-center justify-center">
       <div className="text-center">
         <h1 className="text-primary/80 text-7xl font-bold">Oops!</h1>
-        <h2 className="mt-2 text-xl">We can’t seem to find the page you’re looking for.</h2>
+        <h2 className="mt-2 text-xl">We can't seem to find the page you're looking for.</h2>
         <p className="text-muted-foreground mt-1 text-sm">
           <code>404</code>
         </p>
