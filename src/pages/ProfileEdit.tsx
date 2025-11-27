@@ -182,11 +182,11 @@ export default function EditProfilePage() {
                         <span className="font-medium">⭐ {profile.rating.toFixed(1)}</span>
                       </div>
                     )}
-                    {profile.joinedDate && (
+                    {profile.createdAt && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Member Since:</span>
                         <span className="font-medium">
-                          {new Date(profile.joinedDate).toLocaleDateString()}
+                          {new Date(profile.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     )}

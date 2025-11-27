@@ -9,11 +9,11 @@ export interface UserProfile {
   phone?: string;
   avatarUrl?: string;
   rating?: number;
-  joinedDate?: Date;
   location?: string;
   about?: string;
   skills?: string[];
   role?: string;
+  createdAt?: Date;
 }
 
 /**
@@ -38,11 +38,11 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       phone: currentUser.get("phone"),
       avatarUrl: currentUser.get("avatarUrl"),
       rating: currentUser.get("rating"),
-      joinedDate: currentUser.get("joinedDate"),
       location: currentUser.get("location"),
       about: currentUser.get("about"),
       skills: currentUser.get("skills") || [],
       role: currentUser.get("role"),
+      createdAt: currentUser.createdAt,
     };
   } catch (err: any) {
     console.error("Failed to fetch user profile:", err.message);
@@ -67,11 +67,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       phone: user.get("phone"),
       avatarUrl: user.get("avatarUrl"),
       rating: user.get("rating"),
-      joinedDate: user.get("joinedDate"),
       location: user.get("location"),
       about: user.get("about"),
       skills: user.get("skills") || [],
       role: user.get("role"),
+      createdAt: user.createdAt,
     };
   } catch (err: any) {
     console.error("Failed to fetch user profile:", err.message);

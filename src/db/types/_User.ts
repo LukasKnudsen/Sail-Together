@@ -8,17 +8,16 @@ export interface _UserAttributes {
   about?: string | undefined;
   authData?: any | undefined;
   avatarUrl?: string | undefined;
-  email?: string | undefined;
+  email: string;
   emailVerified?: boolean | undefined;
-  joinedDate?: Date | undefined;
   location?: string | undefined;
   name?: string | undefined;
   password?: string | undefined;
   phone?: string | undefined;
-  rating?: number | undefined;
-  role?: string | undefined;
+  rating: number;
+  role: string;
   skills?: any[] | undefined;
-  username?: string | undefined;
+  username: string;
 }
 
 export type _User = Parse.User<_UserAttributes>;

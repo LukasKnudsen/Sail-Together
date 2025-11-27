@@ -1,8 +1,7 @@
 import { cn } from "@/lib/utils";
-import { Media, MediaFallback } from "./ui/media";
 import { format } from "date-fns";
-import { Heart } from "lucide-react";
 import type { EventAttributes } from "@/db/types";
+import EventMedia from "./EventMedia";
 
 function formatEventDate(date: Date | string | undefined): string {
   if (!date) return "Date TBD";
@@ -26,26 +25,7 @@ export default function EventCard({
 }: React.ComponentProps<"div"> & { event: EventAttributes }) {
   return (
     <div aria-label="event-card" className={cn("flex w-full flex-col gap-2", className)} {...props}>
-      <Media className="aspect-square w-full rounded-3xl">
-        {event.isFavorite ? (
-          <Heart
-            name="heart"
-            className="fill-heart-red text-heart-red absolute top-3 right-3 size-8"
-          />
-        ) : (
-          <Heart
-            name="heart-fill"
-            className="stroke absolute top-3 right-3 size-8 fill-neutral-500 stroke-white text-neutral-500"
-          />
-        )}
-
-        {event.priceKind === "free" && (
-          <div className="absolute right-3 bottom-3 rounded-full bg-green-500 px-3 py-1">
-            <p className="text-sm font-medium text-white">Free</p>
-          </div>
-        )}
-        <MediaFallback className="bg-neutral-300" />
-      </Media>
+      <EventMedia isFavorite={event.isFavorite ?? false} priceKind={event.priceKind} />
 
       <div className="flex w-full flex-col">
         <h3 className="font-semibold">{event.title}</h3>

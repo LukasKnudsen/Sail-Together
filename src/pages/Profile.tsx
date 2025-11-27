@@ -23,7 +23,7 @@ export default function Profile() {
     name,
     rating,
     role,
-    joinedDate,
+    createdAt,
     location,
     email,
     phone,
@@ -62,7 +62,7 @@ export default function Profile() {
               <SuitcaseIcon className="size-6" /> {role}
             </p>
             <p>
-              <CalendarDaysIcon className="size-6" /> Joined {format(joinedDate, "MMM yyyy")}
+              <CalendarDaysIcon className="size-6" /> Joined {createdAt && format(new Date(createdAt), "MMM yyyy")}
             </p>
           </div>
           <p>

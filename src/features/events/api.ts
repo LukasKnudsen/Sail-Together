@@ -2,6 +2,7 @@ import Parse from "@/lib/parse/client";
 import { Event, type EventAttributes } from "@/db/types/Event";
 import { Location } from "@/db/types/Location";
 import type { _User } from "@/db/types/_User";
+import type { Currency } from "@/types/event";
 
 function parseToJSON<T>(obj: Event): T {
   const json = obj.toJSON();
@@ -49,9 +50,9 @@ export async function createEvent({
   };
   priceKind: "free" | "paid";
   priceAmount?: number;
-  priceCurrency?: "DKK" | "EUR" | "USD";
+  priceCurrency?: Currency;
 }): Promise<Event> {
-  // Get current user
+
   const currentUser = Parse.User.current() as _User | null;
   if (!currentUser) {
     throw new Error("User must be logged in to create an event");
