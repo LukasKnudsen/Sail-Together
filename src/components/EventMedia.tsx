@@ -10,7 +10,7 @@ interface EventMediaProps {
 }
 
 export default function EventMedia({
-  isFavorite,
+  isFavorite = false,
   priceKind,
   className,
   onFavoriteClick,
@@ -26,7 +26,7 @@ export default function EventMedia({
         )}
       />
       {priceKind === "free" && (
-        <div className="absolute top-3 left-3 rounded-full bg-green-500 px-3 py-1">
+        <div className="absolute top-3 left-3 rounded-full bg-green-500 px-3 py-1 select-none">
           <p className="text-sm font-medium text-white">Free</p>
         </div>
       )}

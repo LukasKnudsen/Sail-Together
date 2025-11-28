@@ -13,22 +13,25 @@ import LoginPage from "@/pages/auth/Login";
 import GuestRoute from "@/components/GuestRoute";
 import AuthLayout from "@/layouts/AuthLayout";
 import ProfileEdit from "./pages/ProfileEdit";
-import TestPage from "./pages/Test";
-import TestLayout from "./layouts/TestLayout";
+import MapPageLayout from "./layouts/MapPageLayout";
 
 function App() {
   return (
     <Routes>
-      <Route element={<RootLayout />}>
+      <Route element={<MapPageLayout searchType="events" />}>
+        <Route path="/events" element={<Events />} />
+      </Route>
+
+      <Route element={<MapPageLayout searchType="jobs" />}>
         <Route path="/" element={<Home />} />
+      </Route>
+
+      <Route element={<RootLayout />}>
         <Route path="/jobs/:jobId" element={<JobPage />} />
         <Route path="/events" element={<Events />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/edit" element={<ProfileEdit />} />
-      </Route>
-      <Route element={<TestLayout />}>
-        <Route path="/test" element={<TestPage />} />
       </Route>
 
       <Route element={<AuthLayout />}>

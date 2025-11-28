@@ -13,7 +13,6 @@ export const NAVIGATION: Navbar[] = [
   { to: "/", label: "Home", end: true },
   { to: "/events", label: "Events" },
   { to: "/explore", label: "Explore" },
-  { to: "/test", label: "Test" },
 ];
 
 export default function Header() {
