@@ -36,7 +36,7 @@ export default function UserProfileView() {
       <div className="bg-card rounded-lg border p-6">
         <div className="flex items-start gap-6">
           {/* Avatar */}
-          <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
+          <div className="flex h-24 w-24 shrink-0 overflow-hidden rounded-full bg-gray-200">
             {profile.avatarUrl ? (
               <img
                 src={profile.avatarUrl}
