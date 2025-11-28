@@ -32,7 +32,7 @@ export default function HeaderAuth() {
     <div className="ml-auto flex items-center gap-3">
       {user ? (
         <>
-          <NavLink to={"/add-listing"}>
+          <NavLink to={"/add-listing"} className="hidden md:block">
             <Button variant={"secondary"}>Add Listing</Button>
           </NavLink>
 

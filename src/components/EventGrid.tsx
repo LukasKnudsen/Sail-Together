@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
 interface EventGridProps {
@@ -6,6 +7,7 @@ interface EventGridProps {
   children?: ReactNode;
   className?: string;
   gridClassName?: string;
+  isLoading?: boolean;
 }
 
 export default function EventGrid({
@@ -13,7 +15,8 @@ export default function EventGrid({
   count,
   children,
   className,
-  gridClassName = "grid grid-cols-2 gap-4 lg:grid-cols-3",
+  gridClassName,
+  isLoading = false,
 }: EventGridProps) {
   if (!children) {
     return null;
@@ -23,8 +26,12 @@ export default function EventGrid({
 
   return (
     <div className={className}>
-      <h2 className="pb-4 font-medium">{displayTitle}</h2>
-      <div className={gridClassName}>{children}</div>
+      {isLoading ? (
+        <div className="bg-muted mb-4 h-6 w-48 animate-pulse rounded" />
+      ) : (
+        <h2 className="pb-4 font-medium">{displayTitle}</h2>
+      )}
+      <div className={cn("grid grid-cols-2 gap-4 lg:grid-cols-3", gridClassName)}>{children}</div>
     </div>
   );
 }

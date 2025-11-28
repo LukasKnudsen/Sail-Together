@@ -32,7 +32,7 @@ export default function HeaderWithSearch({
   return (
     <div
       className={cn(
-        "bg-background/90 sticky top-0 z-30 flex w-full flex-col gap-2 py-2 backdrop-blur-sm",
+        "bg-background/90 sticky top-0 z-30 flex w-full flex-col gap-2 px-2 py-2 backdrop-blur-sm md:px-0",
         className
       )}
     >

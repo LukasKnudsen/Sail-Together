@@ -16,7 +16,7 @@ export default function Events() {
       <main>
         <TwoColumnLayout
           sidebar={
-            <EventGrid title="events within map area" count={data?.length}>
+            <EventGrid title="events within map area" count={data?.length} isLoading={isLoading}>
               {isLoading ? (
                 Array.from({ length: 9 }).map((_, i) => <EventCardSkeleton key={i} />)
               ) : error ? (
