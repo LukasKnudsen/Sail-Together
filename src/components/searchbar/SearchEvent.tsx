@@ -1,5 +1,5 @@
 import SearchBar from "./SearchBar";
-import { searchEventConfig, EVENT_TYPES } from "./config/searchEventConfig";
+import { searchEventConfig, EVENT_TYPES } from "./configs/searchEventConfig";
 
 // Re-export for backwards compatibility
 export { EVENT_TYPES };
