@@ -11,6 +11,7 @@ export interface JobAttributes {
   createdById?: _User | undefined;
   date: Date;
   description: string;
+  imageUrl?: string | undefined;
   isFavorite?: boolean | undefined;
   locationId: Location;
   title: string;
@@ -44,6 +45,13 @@ export class Job extends Parse.Object<JobAttributes> {
   }
   set description(value: string) {
     super.set("description", value);
+  }
+
+  get imageUrl(): string | undefined {
+    return super.get("imageUrl");
+  }
+  set imageUrl(value: string | undefined) {
+    super.set("imageUrl", value);
   }
 
   get isFavorite(): boolean | undefined {

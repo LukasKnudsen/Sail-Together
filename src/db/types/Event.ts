@@ -1,15 +1,16 @@
 import Parse from "parse";
 
+import type { Category } from "./Category";
 import type { _User } from "./_User";
 import type { Location } from "./Location";
-import type { CategorySlug } from "@/types/category";
 
 export interface EventAttributes {
   id: string;
   objectId: string;
   createdAt: Date;
   updatedAt: Date;
-  categorySlug: string;
+  categoryId: Category;
+  categorySlug?: string | undefined;
   createdById?: _User | undefined;
   description?: string | undefined;
   endDate?: Date | undefined;
@@ -22,28 +23,6 @@ export interface EventAttributes {
   title: string;
 }
 
-export interface EventWithRelations extends Omit<EventAttributes, "locationId" | "createdById"> {
-  category: {
-    slug: CategorySlug;
-    name: string;
-  };
-  location: {
-    id: string;
-    name: string;
-    address: string;
-    longitude: number;
-    latitude: number;
-  };
-  createdBy?: {
-    id: string;
-    name?: string;
-    avatarUrl?: string;
-  };
-  // Keeping IDs for backward compatibility and direct access
-  locationId: string;
-  createdById?: string;
-}
-
 export class Event extends Parse.Object<EventAttributes> {
   static className: string = "Event";
 
@@ -51,10 +30,17 @@ export class Event extends Parse.Object<EventAttributes> {
     super("Event", data as EventAttributes);
   }
 
-  get categorySlug(): string {
+  get categoryId(): Category {
+    return super.get("categoryId");
+  }
+  set categoryId(value: Category) {
+    super.set("categoryId", value);
+  }
+
+  get categorySlug(): string | undefined {
     return super.get("categorySlug");
   }
-  set categorySlug(value: string) {
+  set categorySlug(value: string | undefined) {
     super.set("categorySlug", value);
   }
 
@@ -130,3 +116,4 @@ export class Event extends Parse.Object<EventAttributes> {
 }
 
 Parse.Object.registerSubclass("Event", Event);
+

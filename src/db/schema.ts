@@ -65,7 +65,8 @@ export async function createSchemas() {
             .addBoolean("isFavorite", { defaultValue: false })
             .addPointer("locationId", "Location", { required: true })
             .addPointer("createdById", "_User")
-            .addString("description", { required: true }),
+            .addString("description", { required: true })
+            .addString("imageUrl"),
         "Job"
     );
 
