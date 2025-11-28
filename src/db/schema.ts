@@ -44,41 +44,17 @@ export async function createSchemas() {
     );
 
     const eventSchema = new Parse.Schema("Event");
+    eventSchema.addPointer("createdById", "_User", { required: true });
+    eventSchema.addPointer("locationId", "Location", { required: true });
     eventSchema.addString("title", { required: true });
     eventSchema.addString("description");
     eventSchema.addBoolean("isFavorite", { defaultValue: false });
     eventSchema.addDate("startDate", { required: true });
     eventSchema.addDate("endDate");
-    eventSchema.addString("categorySlug", { required: true });
-    eventSchema.addPointer("locationId", "Location", { required: true });
-    eventSchema.addPointer("createdById", "_User");
-    eventSchema.addString("priceKind", { required: true });
+    eventSchema.addString("categorySlug", { required: true, defaultValue: "other" });
+    eventSchema.addString("priceKind", { required: true, defaultValue: "free" });
     eventSchema.addNumber("priceAmount");
     eventSchema.addString("priceCurrency", { defaultValue: "DKK" });
-
-    try {
-        await eventSchema.save();
-        console.log("✅ Created Event schema with all fields");
-    } catch (err: any) {
-        if (err.code === 103) {
-            console.log("⚠️ Event schema already exists.");
-            console.log(
-                "⚠️ If it only has default fields, delete it in Back4App dashboard and run migration again."
-            );
-            console.log("⚠️ Or manually add fields one by one using update()");
-
-            // Try to update with all fields (may not work if schema is empty)
-            try {
-                await eventSchema.update();
-                console.log("✅ Updated Event schema");
-            } catch (updateErr: any) {
-                console.log("❌ Update failed:", updateErr.message);
-                console.log("💡 Solution: Delete Event table in Back4App, then run migration again");
-            }
-        } else {
-            throw err;
-        }
-    }
 
     await safeSave(
         new Parse.Schema("Job")
