@@ -24,16 +24,21 @@ export default function EventCard({
   ...props
 }: React.ComponentProps<"div"> & { event: EventAttributes }) {
   return (
-    <div aria-label="event-card" className={cn("flex w-full flex-col gap-2", className)} {...props}>
+    <div
+      aria-label="event-card"
+      className={cn("flex aspect-square w-full flex-col gap-2", className)}
+      {...props}
+    >
       <EventMedia isFavorite={event.isFavorite ?? false} priceKind={event.priceKind} />
 
-      <div className="flex w-full flex-col">
-        <h3 className="font-semibold">{event.title}</h3>
-
-        <div className="text-muted-foreground flex gap-2 text-sm">
-          <p>{formatEventDate(event.startDate)}</p>
-        </div>
-        <p className="text-muted-foreground text-sm">{event.locationId.name}</p>
+      <div className="flex w-full flex-col gap-1 px-1">
+        <h3 className="leading-tight font-semibold">{event.title}</h3>
+        <p className="text-muted-foreground truncate text-sm leading-none">
+          {formatEventDate(event.startDate)}
+        </p>
+        <p className="text-muted-foreground truncate text-sm leading-none">
+          {event.locationId.name}
+        </p>
       </div>
     </div>
   );

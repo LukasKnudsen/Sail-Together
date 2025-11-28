@@ -21,18 +21,16 @@ export default function EventMedia({
         name="heart"
         onClick={onFavoriteClick}
         className={cn(
-          "absolute top-3 right-3 size-8 cursor-pointer",
-          isFavorite
-            ? "fill-heart-red text-heart-red"
-            : "fill-neutral-500 stroke-white text-neutral-500"
+          "absolute top-3 right-3 size-8 cursor-pointer transition-transform ease-in-out hover:scale-110",
+          isFavorite ? "fill-heart-red text-heart-red" : "fill-muted-foreground/50 stroke-white"
         )}
       />
       {priceKind === "free" && (
-        <div className="absolute right-3 bottom-3 rounded-full bg-green-500 px-3 py-1">
+        <div className="absolute top-3 left-3 rounded-full bg-green-500 px-3 py-1">
           <p className="text-sm font-medium text-white">Free</p>
         </div>
       )}
-      <MediaFallback className="bg-neutral-300" />
+      <MediaFallback className="bg-muted" />
     </Media>
   );
 }

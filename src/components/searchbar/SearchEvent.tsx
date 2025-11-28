@@ -216,7 +216,7 @@ export default function SearchEvent() {
               aria-selected={isTabActive}
               type="button"
               className={cn(
-                "focus-visible:border-ring w-full truncate rounded-full px-3 py-1.5 font-medium outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                "focus-visible:border-ring w-full truncate rounded-full px-3 py-1.5 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                 isTabActive ? "bg-black text-white" : "text-primary hover:bg-accent/80"
               )}
               onClick={() => dispatch({ type: "TOGGLE_TAB", index: i })}
@@ -228,7 +228,7 @@ export default function SearchEvent() {
         <button
           disabled={!canSearch}
           onClick={() => dispatch({ type: "CLOSE" })}
-          className="rounded-full bg-blue-500 px-3 py-1.5 font-medium text-white disabled:pointer-events-none disabled:opacity-50"
+          className="rounded-full bg-blue-500 px-3 py-1.5 text-sm font-medium text-white disabled:pointer-events-none disabled:opacity-50"
         >
           Search
         </button>
@@ -239,7 +239,7 @@ export default function SearchEvent() {
           role="tabpanel"
           id={`panel-${activeTab.toLowerCase()}`}
           aria-labelledby={`tab-${activeTab.toLowerCase()}`}
-          className="bg-card absolute top-full z-40 mt-2 w-full overflow-hidden rounded-3xl py-6 shadow-lg inset-shadow-2xs"
+          className="bg-card border-border absolute top-full z-40 mt-2 w-full overflow-hidden rounded-3xl border py-6 shadow-lg"
         >
           <div className="h-full max-h-96 w-full overflow-y-auto overscroll-contain">
             {activeTab === "Where" && (

@@ -13,6 +13,8 @@ import LoginPage from "@/pages/auth/Login";
 import GuestRoute from "@/components/GuestRoute";
 import AuthLayout from "@/layouts/AuthLayout";
 import ProfileEdit from "./pages/ProfileEdit";
+import TestPage from "./pages/Test";
+import TestLayout from "./layouts/TestLayout";
 
 function App() {
   return (
@@ -24,6 +26,9 @@ function App() {
         <Route path="/explore" element={<Explore />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/edit" element={<ProfileEdit />} />
+      </Route>
+      <Route element={<TestLayout />}>
+        <Route path="/test" element={<TestPage />} />
       </Route>
 
       <Route element={<AuthLayout />}>
