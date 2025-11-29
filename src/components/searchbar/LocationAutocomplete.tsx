@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import type { GeocodingResponse, GeocodingFeature } from "@mapbox/search-js-core";
 import OptionItem from "./OptionItem";
-import { MapPin } from "lucide-react";
+import { MapPin, X } from "lucide-react";
 import {
   SUGGESTED_LOCATIONS,
   type EventSearchState,
@@ -22,6 +22,16 @@ export default function LocationAutocomplete({ state, dispatch }: LocationAutoco
   const [isLoading, setIsLoading] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (state.isOpen && state.stepIndex === 0) {
+      // Small delay to ensure the input is rendered
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
+  }, [state.isOpen, state.stepIndex]);
 
   const searchLocations = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim() || searchQuery.length < 2) {
@@ -94,14 +104,33 @@ export default function LocationAutocomplete({ state, dispatch }: LocationAutoco
     }
   };
 
+  const handleClear = () => {
+    setQuery("");
+    setSuggestions([]);
+    dispatch({ type: "SET_WHERE", value: null });
+    inputRef.current?.focus();
+  };
+
   return (
     <>
-      <Input
-        type="text"
-        value={query}
-        onChange={handleInputChange}
-        placeholder="Search for a location"
-      />
+      <div className="relative">
+        <Input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={handleInputChange}
+          className="border-none shadow-none"
+          placeholder="Search for a location"
+        />
+        {query && (
+          <button
+            onClick={handleClear}
+            className="hover:bg-secondary absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <X className="text-muted-foreground size-4" />
+          </button>
+        )}
+      </div>
       {suggestions.length > 0 && (
         <div className="flex flex-col gap-0.5 py-1">
           {suggestions.map((suggestion) => {
