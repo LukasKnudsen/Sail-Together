@@ -1,3 +1,6 @@
+export { Category } from "./Category";
+export type { CategoryAttributes } from "./Category";
+
 export { Comment } from "./Comment";
 export type { CommentAttributes } from "./Comment";
 

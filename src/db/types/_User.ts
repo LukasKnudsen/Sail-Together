@@ -10,6 +10,7 @@ export interface _UserAttributes {
   avatarUrl?: string | undefined;
   email: string;
   emailVerified?: boolean | undefined;
+  joinedDate: Date;
   location?: string | undefined;
   name?: string | undefined;
   password?: string | undefined;
@@ -21,3 +22,4 @@ export interface _UserAttributes {
 }
 
 export type _User = Parse.User<_UserAttributes>;
+
