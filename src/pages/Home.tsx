@@ -5,6 +5,9 @@ import JobCard from "@/components/JobCard";
 import { getJobs } from "@/features/jobs/api";
 import { useToggleJobFavorite } from "@/features/jobs/useToggleJobFavorite";
 import { Link } from "react-router-dom";
+import { useMemo } from "react";
+import Map from "@/components/map/Map";
+import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
 
 export default function Home() {
   const { data, isLoading, error } = useSWR("jobs", getJobs, {
@@ -13,6 +16,7 @@ export default function Home() {
   });
 
   const toggleFavorite = useToggleJobFavorite("jobs");
+  const mapData = useMemo(() => jobsToGeoJSON(data ?? []), [data]);
 
   return (
     <>
@@ -30,7 +34,7 @@ export default function Home() {
                 data.map((job) => (
                   <li key={job.id}>
                     <Link to={`/jobs/${job.id}`} aria-label={`View job offer for ${job.title}`}>
-                    <JobCard job={job} onToggleFavorite={toggleFavorite}/>
+                      <JobCard job={job} onToggleFavorite={toggleFavorite} />
                     </Link>
                   </li>
                 ))
@@ -39,7 +43,7 @@ export default function Home() {
               )}
             </JobList>
           }
-          map={<div className="bg-muted size-full rounded-3xl" />}
+          map={<Map jobs={mapData} />}
         />
       </main>
     </>
