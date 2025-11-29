@@ -12,14 +12,16 @@ import SignUpPage from "@/pages/auth/SignUp";
 import LoginPage from "@/pages/auth/Login";
 import GuestRoute from "@/components/GuestRoute";
 import AuthLayout from "@/layouts/AuthLayout";
-import ProfileEdit from "./pages/ProfileEdit";
-import MapPageLayout from "./layouts/MapPageLayout";
+import ProfileEdit from "@/pages/ProfileEdit";
+import MapPageLayout from "@/layouts/MapPageLayout";
+import Test from "@/pages/Test";
 
 function App() {
   return (
     <Routes>
       <Route element={<MapPageLayout searchType="events" />}>
         <Route path="/events" element={<Events />} />
+        <Route path="/test" element={<Test />} />
       </Route>
 
       <Route element={<MapPageLayout searchType="jobs" />}>
