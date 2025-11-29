@@ -3,12 +3,16 @@ import TwoColumnLayout from "@/components/layouts/TwoColumnLayout";
 import JobList from "@/components/JobList";
 import JobCard from "@/components/JobCard";
 import { getJobs } from "@/features/jobs/api";
+import { useToggleJobFavorite } from "@/features/jobs/useToggleJobFavorite";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   const { data, isLoading, error } = useSWR("jobs", getJobs, {
     dedupingInterval: 10 * 60 * 1000,
     revalidateIfStale: true,
   });
+
+  const toggleFavorite = useToggleJobFavorite("jobs");
 
   return (
     <>
@@ -25,7 +29,9 @@ export default function Home() {
               ) : data && data.length > 0 ? (
                 data.map((job) => (
                   <li key={job.id}>
-                    <JobCard job={job} />
+                    <Link to={`/jobs/${job.id}`} aria-label={`View job offer for ${job.title}`}>
+                    <JobCard job={job} onToggleFavorite={toggleFavorite}/>
+                    </Link>
                   </li>
                 ))
               ) : (
