@@ -2,19 +2,19 @@ import { Heart } from "lucide-react";
 import { Media, MediaFallback } from "./ui/media";
 import { cn } from "@/lib/utils";
 
-interface EventMediaProps {
+interface CardMediaProps {
   isFavorite: boolean;
-  priceKind: string;
+  priceKind?: string;
   className?: string;
   onFavoriteClick?: (e: React.MouseEvent) => void;
 }
 
-export default function EventMedia({
+export default function CardMedia({
   isFavorite = false,
   priceKind,
   className,
   onFavoriteClick,
-}: EventMediaProps) {
+}: CardMediaProps) {
   return (
     <Media className={cn("aspect-square w-full rounded-3xl", className)}>
       <Heart
