@@ -7,24 +7,26 @@ import BaseMap from "@/components/map/BaseMap";
 import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
 import ShareJob from "@/components/modals/ShareJob";
 import ApplyJob from "@/components/modals/ApplyJob";
-import { useJob } from "@/features/jobs/hooks";
+import { getJobById } from "@/features/jobs/api";
 import { format } from "date-fns";
+import useSWR from "swr";
 
 export default function JobPage() {
   const [applyOpen, setApplyOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
   const { jobId } = useParams<{ jobId: string }>();
-  const { job, isLoading } = useJob(jobId || "");
+  const { data: job, isLoading } = useSWR(jobId ? `job-${jobId}` : null, () => getJobById(jobId!));
 
   const mapData = useMemo(() => {
     if (
       !job ||
-      !job.location ||
-      typeof job.location.longitude !== "number" ||
-      typeof job.location.latitude !== "number"
-    )
+      !job.locationId ||
+      typeof job.locationId.longitude !== "number" ||
+      typeof job.locationId.latitude !== "number"
+    ) {
       return null;
+    }
 
     return jobsToGeoJSON([job]);
   }, [job]);
@@ -90,7 +92,7 @@ export default function JobPage() {
               <dt className="sr-only">Location</dt>
               <dd>
                 <MapPin className="text-muted-foreground size-5" />
-                {job.location?.name ?? "Unknown location"}
+                {job.locationId?.name ?? "Unknown location"}
               </dd>
             </dl>
           </div>
@@ -159,9 +161,9 @@ export default function JobPage() {
               </div>
             )}
           </div>
-          <p>{job.location?.name ?? "Location not specified"}</p>
-          {job.location?.address && (
-            <p className="text-muted-foreground text-sm">{job.location.address}</p>
+          <p>{job.locationId?.name ?? "Location not specified"}</p>
+          {job.locationId?.address && (
+            <p className="text-muted-foreground text-sm">{job.locationId.address}</p>
           )}
         </section>
       </article>

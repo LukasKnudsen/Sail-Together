@@ -1,359 +1,219 @@
 import Parse from "@/lib/parse/client";
-import type { Job, JobWithRelations } from "@/types/job";
+import { Job } from "@/db/types/Job";
+import { Location } from "@/db/types/Location";
+import { JobRequirement } from "@/db/types/JobRequirement";
+import { JobExperience } from "@/db/types/JobExperience";
+import { JobQualification } from "@/db/types/JobQualification";
+import type { _User } from "@/db/types/_User";
+import type { JobAttributes } from "@/db/types/Job";
 
-export async function getJobs(limit = 1000): Promise<JobWithRelations[]> {
-    const query = new Parse.Query("Job");
+export interface JobWithRelations extends JobAttributes {
+    requirements?: Array<{
+        id: string;
+        jobId: string;
+        requirement: string;
+        order: number;
+    }>;
+    experience?: Array<{
+        id: string;
+        jobId: string;
+        experience: string;
+        order: number;
+    }>;
+    qualifications?: Array<{
+        id: string;
+        jobId: string;
+        qualification: string;
+        order: number;
+    }>;
+}
+
+function parseToJSON<T>(obj: Job): T {
+    const json = obj.toJSON();
+    return {
+        ...json,
+        id: obj.id,
+        date: obj.get("date"),
+        createdAt: obj.get("createdAt"),
+        updatedAt: obj.get("updatedAt"),
+    } as T;
+}
+
+export async function getJobs(): Promise<JobAttributes[]> {
+    const query = new Parse.Query(Job);
     query.include("locationId");
     query.include("createdById");
     query.descending("createdAt");
-    query.limit(limit);
 
-    try {
-        const results = await query.find();
-        return results.map((obj) => {
-            const loc = obj.get("locationId");
-            return {
-                id: obj.id || "",
-                title: obj.get("title"),
-                type: obj.get("type"),
-                date: obj.get("date"),
-                vessel: obj.get("vessel"),
-                isFavorite: obj.get("isFavorite") ?? false,
-                description: obj.get("description"),
-                location: loc
-                    ? {
-                        id: loc.id || "",
-                        name: loc.get("name"),
-                        address: loc.get("address"),
-                        longitude: loc.get("longitude"),
-                        latitude: loc.get("latitude"),
-                    }
-                    : { id: "", name: "", address: "", longitude: 0, latitude: 0 },
-                requirements: [],
-                experience: [],
-                qualifications: [],
-                createdAt: obj.get("createdAt"),
-                updatedAt: obj.get("updatedAt"),
-                createdBy: obj.get("createdById")
-                    ? {
-                        id: obj.get("createdById").id,
-                        name: obj.get("createdById").get("name") || obj.get("createdById").get("username"),
-                        avatarUrl: obj.get("createdById").get("avatarUrl"),
-                    }
-                    : undefined,
-            } as JobWithRelations;
-        });
-    } catch (err: any) {
-        console.error("Failed to fetch jobs:", err.message);
-        throw err;
-    }
+    const results = await query.find();
+    return results.map((job) => parseToJSON<JobAttributes>(job));
 }
 
 export async function getJobById(id: string): Promise<JobWithRelations | null> {
-    const query = new Parse.Query("Job");
+    const query = new Parse.Query(Job);
     query.include("locationId");
     query.include("createdById");
 
     try {
-        const obj = await query.get(id);
+        const job = await query.get(id);
 
-        const [requirements, experience, qualifications] = await Promise.all([
-            getJobRequirements(id),
-            getJobExperience(id),
-            getJobQualifications(id),
-        ]);
+        const requirementsQuery = new Parse.Query(JobRequirement);
+        requirementsQuery.equalTo("jobId", job);
+        requirementsQuery.ascending("order");
+        const requirementsResults = await requirementsQuery.find();
+        const requirements = requirementsResults.map((r) => ({
+            id: r.id,
+            jobId: job.id,
+            requirement: r.requirement,
+            order: r.order,
+        }));
 
-        const loc = obj.get("locationId");
+        const experiencesQuery = new Parse.Query(JobExperience);
+        experiencesQuery.equalTo("jobId", job);
+        experiencesQuery.ascending("order");
+        const experiencesResults = await experiencesQuery.find();
+        const experience = experiencesResults.map((e) => ({
+            id: e.id,
+            jobId: job.id,
+            experience: e.experience,
+            order: e.order,
+        }));
+
+        const qualificationsQuery = new Parse.Query(JobQualification);
+        qualificationsQuery.equalTo("jobId", job);
+        qualificationsQuery.ascending("order");
+        const qualificationsResults = await qualificationsQuery.find();
+        const qualifications = qualificationsResults.map((q) => ({
+            id: q.id,
+            jobId: job.id,
+            qualification: q.qualification,
+            order: q.order,
+        }));
+
+        const baseJob = parseToJSON<JobAttributes>(job);
 
         return {
-            id: obj.id || "",
-            title: obj.get("title"),
-            type: obj.get("type"),
-            date: obj.get("date"),
-            vessel: obj.get("vessel"),
-            isFavorite: obj.get("isFavorite") ?? false,
-            description: obj.get("description"),
-            location: loc
-                ? {
-                    id: loc.id || "",
-                    name: loc.get("name"),
-                    address: loc.get("address"),
-                    longitude: loc.get("longitude"),
-                    latitude: loc.get("latitude"),
-                }
-                : { id: "", name: "", address: "", longitude: 0, latitude: 0 },
+            ...baseJob,
             requirements,
             experience,
             qualifications,
-            createdAt: obj.get("createdAt"),
-            updatedAt: obj.get("updatedAt"),
-            createdBy: obj.get("createdById")
-                ? {
-                    id: obj.get("createdById").id,
-                    name: obj.get("createdById").get("name") || obj.get("createdById").get("username"),
-                    avatarUrl: obj.get("createdById").get("avatarUrl"),
-                }
-                : undefined,
-        };
+        } as JobWithRelations;
     } catch (err: any) {
         console.error("Failed to fetch job:", err.message);
         return null;
     }
 }
 
-export async function getJobRequirements(
-    jobId: string
-): Promise<Array<{ id: string; requirement: string; order: number; jobId: string }>> {
-    const query = new Parse.Query("JobRequirement");
-
-    const jobPointer = Parse.Object.extend("Job").createWithoutData(jobId);
-    query.equalTo("jobId", jobPointer);
-    query.ascending("order");
-
-    try {
-        const results = await query.find();
-        return results.map((r) => ({
-            id: r.id || "",
-            jobId,
-            requirement: r.get("requirement") || "",
-            order: Number(r.get("order")) || 0,
-        }));
-    } catch (err: any) {
-        console.error("Failed to fetch job requirements:", err.message);
-        return [];
-    }
-}
-
-export async function getJobExperience(
-    jobId: string
-): Promise<Array<{ id: string; experience: string; order: number; jobId: string }>> {
-    const query = new Parse.Query("JobExperience");
-
-    const jobPointer = Parse.Object.extend("Job").createWithoutData(jobId);
-    query.equalTo("jobId", jobPointer);
-    query.ascending("order");
-
-    try {
-        const results = await query.find();
-        return results.map((e) => ({
-            id: e.id || "",
-            jobId,
-            experience: e.get("experience") || "",
-            order: Number(e.get("order")) || 0,
-        }));
-    } catch (err: any) {
-        console.error("Failed to fetch job experience:", err.message);
-        return [];
-    }
-}
-
-export async function getJobQualifications(
-    jobId: string
-): Promise<Array<{ id: string; qualification: string; order: number; jobId: string }>> {
-    const query = new Parse.Query("JobQualification");
-
-    const jobPointer = Parse.Object.extend("Job").createWithoutData(jobId);
-    query.equalTo("jobId", jobPointer);
-    query.ascending("order");
-
-    try {
-        const results = await query.find();
-        return results.map((q) => ({
-            id: q.id || "",
-            jobId,
-            qualification: q.get("qualification") || "",
-            order: Number(q.get("order")) || 0,
-        }));
-    } catch (err: any) {
-        console.error("Failed to fetch job qualifications:", err.message);
-        return [];
-    }
-}
-
-export async function createLocation({
-    name,
-    address,
-    longitude,
-    latitude,
-}: {
-    name: string;
-    address: string;
-    longitude: number;
-    latitude: number;
-}): Promise<string> {
-    const Location = Parse.Object.extend("Location");
-    const location = new Location();
-    location.set("name", name);
-    location.set("address", address);
-    location.set("longitude", longitude);
-    location.set("latitude", latitude);
-
-    try {
-        const saved = await location.save();
-        return saved.id || "";
-    } catch (err: any) {
-        console.error("Failed to create location:", err.message);
-        throw err;
-    }
-}
-
 export async function createJob({
     title,
-    type,
-    date,
-    vessel,
     description,
-    locationId,
-    isFavorite = false,
+    date,
+    type,
+    vessel,
+    imageUrl,
+    location,
+    isFavorite,
+    requirements,
+    experiences,
+    qualifications,
 }: {
     title: string;
-    type: "Permanent" | "Contract" | "Seasonal" | "Temporary";
-    date: Date;
-    vessel: string;
     description?: string;
-    locationId: string;
+    date: Date;
+    type: string;
+    vessel: string;
+    imageUrl?: File | string;
+    location: {
+        name: string;
+        address: string;
+        longitude: number;
+        latitude: number;
+    };
     isFavorite?: boolean;
-}): Promise<string> {
-    const Job = Parse.Object.extend("Job");
-    const job = new Job();
-
-    const currentUser = Parse.User.current();
+    requirements?: string[];
+    experiences?: string[];
+    qualifications?: string[];
+}): Promise<Job> {
+    const currentUser = Parse.User.current() as _User | null;
     if (!currentUser) {
         throw new Error("User must be logged in to create a job");
     }
 
-    const locationPointer = Parse.Object.extend("Location").createWithoutData(locationId);
+    const locationObj = new Location();
+    locationObj.name = location.name;
+    locationObj.address = location.address;
+    locationObj.longitude = location.longitude;
+    locationObj.latitude = location.latitude;
+    await locationObj.save();
 
-    job.set("title", title);
-    job.set("type", type);
-    job.set("date", date);
-    job.set("vessel", vessel);
-    job.set("locationId", locationPointer);
-    job.set("isFavorite", isFavorite);
-    job.set("createdById", currentUser);
-
-    if (description) job.set("description", description);
-
-    try {
-        const saved = await job.save();
-        return saved.id || "";
-    } catch (err: any) {
-        console.error("Failed to create job:", err.message);
-        throw err;
+    let finalImageUrl: string | undefined;
+    if (imageUrl) {
+        if (imageUrl instanceof File) {
+            const parseFile = new Parse.File(imageUrl.name, imageUrl);
+            await parseFile.save();
+            finalImageUrl = parseFile.url();
+        } else {
+            finalImageUrl = imageUrl;
+        }
     }
-}
 
-export async function createJobRequirement(
-    jobId: string,
-    requirement: string,
-    order = 0
-): Promise<string> {
-    const Requirement = Parse.Object.extend("JobRequirement");
-    const req = new Requirement();
+    const job = new Job();
+    job.title = title;
+    job.date = date;
+    job.type = type;
+    job.vessel = vessel;
+    job.locationId = locationObj;
+    job.createdById = currentUser;
 
-    const jobPointer = Parse.Object.extend("Job").createWithoutData(jobId);
+    if (description) job.description = description;
+    if (finalImageUrl) job.imageUrl = finalImageUrl;
+    if (isFavorite !== undefined) job.isFavorite = isFavorite;
 
-    req.set("jobId", jobPointer);
-    req.set("requirement", requirement);
-    req.set("order", order);
+    await job.save();
 
-    try {
-        const saved = await req.save();
-        return saved.id || "";
-    } catch (err: any) {
-        console.error("Failed to create job requirement:", err.message);
-        throw err;
+    if (requirements && requirements.length > 0) {
+        const requirementObjs = requirements.map((req, index) => {
+            const requirementObj = new JobRequirement();
+            requirementObj.jobId = job;
+            requirementObj.requirement = req;
+            requirementObj.order = index;
+            return requirementObj;
+        });
+        await Parse.Object.saveAll(requirementObjs);
     }
-}
 
-export async function createJobExperience(
-    jobId: string,
-    experience: string,
-    order = 0
-): Promise<string> {
-    const Experience = Parse.Object.extend("JobExperience");
-    const exp = new Experience();
-
-    const jobPointer = Parse.Object.extend("Job").createWithoutData(jobId);
-
-    exp.set("jobId", jobPointer);
-    exp.set("experience", experience);
-    exp.set("order", order);
-
-    try {
-        const saved = await exp.save();
-        return saved.id || "";
-    } catch (err: any) {
-        console.error("Failed to create job experience:", err.message);
-        throw err;
+    if (experiences && experiences.length > 0) {
+        const experienceObjs = experiences.map((exp, index) => {
+            const experienceObj = new JobExperience();
+            experienceObj.jobId = job;
+            experienceObj.experience = exp;
+            experienceObj.order = index;
+            return experienceObj;
+        });
+        await Parse.Object.saveAll(experienceObjs);
     }
-}
 
-export async function createJobQualification(
-    jobId: string,
-    qualification: string,
-    order = 0
-): Promise<string> {
-    const Qualification = Parse.Object.extend("JobQualification");
-    const qual = new Qualification();
-
-    const jobPointer = Parse.Object.extend("Job").createWithoutData(jobId);
-
-    qual.set("jobId", jobPointer);
-    qual.set("qualification", qualification);
-    qual.set("order", order);
-
-    try {
-        const saved = await qual.save();
-        return saved.id || "";
-    } catch (err: any) {
-        console.error("Failed to create job qualification:", err.message);
-        throw err;
+    if (qualifications && qualifications.length > 0) {
+        const qualificationObjs = qualifications.map((qual, index) => {
+            const qualificationObj = new JobQualification();
+            qualificationObj.jobId = job;
+            qualificationObj.qualification = qual;
+            qualificationObj.order = index;
+            return qualificationObj;
+        });
+        await Parse.Object.saveAll(qualificationObjs);
     }
-}
 
-export async function updateJob(
-    id: string,
-    data: Partial<Omit<Job, "id" | "locationId">>
-): Promise<void> {
-    const query = new Parse.Query("Job");
-
-    try {
-        const job = await query.get(id);
-
-        if (data.title) job.set("title", data.title);
-        if (data.type) job.set("type", data.type);
-        if (data.date) job.set("date", new Date(data.date));
-        if (data.vessel) job.set("vessel", data.vessel);
-        if (data.isFavorite !== undefined) job.set("isFavorite", data.isFavorite);
-        if (data.description !== undefined) job.set("description", data.description);
-
-        await job.save();
-    } catch (err: any) {
-        console.error("Failed to update job:", err.message);
-        throw err;
-    }
-}
-
-export async function deleteJob(id: string): Promise<void> {
-    const query = new Parse.Query("Job");
-
-    try {
-        const job = await query.get(id);
-        await job.destroy();
-    } catch (err: any) {
-        console.error("Failed to delete job:", err.message);
-        throw err;
-    }
+    return job as Job;
 }
 
 export async function toggleJobFavorite(id: string): Promise<boolean> {
-    const query = new Parse.Query("Job");
+    const query = new Parse.Query(Job);
 
     try {
         const job = await query.get(id);
-        const newStatus = !job.get("isFavorite");
-        job.set("isFavorite", newStatus);
+        const newStatus = !job.isFavorite;
+        job.isFavorite = newStatus;
         await job.save();
         return newStatus;
     } catch (err: any) {
