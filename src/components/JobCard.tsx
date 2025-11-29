@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { JobAttributes } from "@/db/types/Job";
-import JobMedia from "./JobMedia";
+import CardMedia from "./CardMedia";
 import { MapPin, Ship, Clock, CalendarDays } from "lucide-react";
 
 function formatJobDate(date: Date | string | undefined): string {
@@ -33,7 +33,7 @@ export default function JobCard({
             {...props}
         >
             <div className="relative shrink-0">
-                <JobMedia
+                <CardMedia
                     isFavorite={job.isFavorite ?? false}
                     onFavoriteClick={() => onToggleFavorite?.(job.id)}
                     className="size-28 rounded-3xl"

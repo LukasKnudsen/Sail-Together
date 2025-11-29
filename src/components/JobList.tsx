@@ -31,7 +31,7 @@ export default function JobList({
             ) : (
                 <h2 className="pb-4 font-medium">{displayTitle}</h2>
             )}
-            <ul className={cn("space-y-2", listClassName)}>{children}</ul>
+            <ul className={cn("flex flex-col gap-4", listClassName)}>{children}</ul>
         </div>
     );
 }

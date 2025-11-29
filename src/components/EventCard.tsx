@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import type { EventAttributes } from "@/db/types";
-import EventMedia from "./EventMedia";
+import CardMedia from "./CardMedia";
 
 function formatEventDate(date: Date | string | undefined): string {
   if (!date) return "Date TBD";
@@ -29,7 +29,7 @@ export default function EventCard({
       className={cn("flex aspect-square w-full flex-col gap-2", className)}
       {...props}
     >
-      <EventMedia isFavorite={event.isFavorite ?? false} priceKind={event.priceKind} />
+      <CardMedia isFavorite={event.isFavorite ?? false} priceKind={event.priceKind} />
 
       <div className="flex w-full flex-col gap-1 px-1">
         <h3 className="leading-tight font-semibold">{event.title}</h3>
