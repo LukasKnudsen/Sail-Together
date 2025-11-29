@@ -40,6 +40,7 @@ export default function SearchBar<TState extends Record<string, any>>({
     dispatch({ type: "CLOSE" });
   });
 
+  
   const activeStep = config.steps[state.stepIndex as number];
 
   useEffect(() => {
@@ -112,9 +113,7 @@ export default function SearchBar<TState extends Record<string, any>>({
           aria-labelledby={`tab-${activeStep.id.toLowerCase()}`}
           className="bg-card border-border absolute top-full z-40 mt-2 w-full overflow-hidden rounded-3xl border py-6 shadow-lg"
         >
-          <div className="h-full max-h-96 w-full overflow-y-auto overscroll-contain">
             {config.renderStepContent(activeStep.id, state, dispatch)}
-          </div>
         </div>
       )}
     </div>

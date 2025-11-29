@@ -3,6 +3,7 @@ import type { DateRange } from "react-day-picker";
 import type { CategorySlug } from "@/types/category";
 import WhenPanel from "../WhenPanel";
 import OptionItem from "../OptionItem";
+import LocationAutocomplete from "../LocationAutocomplete";
 
 export interface SuggestedLocation {
   name: string;
@@ -21,17 +22,14 @@ export const SUGGESTED_LOCATIONS: SuggestedLocation[] = [
   {
     name: "Skovshoved, Aarhus, Rungsted",
     description: "For autumn regatta hotspots",
-    className: "bg-yellow-100",
   },
   {
     name: "Amager Strand, Svendborg",
     description: "For winter sailing training sessions",
-    className: "bg-green-100",
   },
   {
     name: "Tuborg Havn, Dragør, Skudehavnen",
     description: "Meetups & Dock BBQs",
-    className: "bg-red-100",
   },
 ];
 
@@ -115,7 +113,7 @@ export type EventSearchState = {
   when?: DateRange | undefined;
 };
 
-type EventSearchAction =
+export type EventSearchAction =
   | { type: "OPEN"; stepIndex: number }
   | { type: "CLOSE" }
   | { type: "TOGGLE_TAB"; index: number }
@@ -186,25 +184,7 @@ export const searchEventConfig = {
     if (stepId === "where") {
       return (
         <div className="flex flex-col gap-4 px-6">
-          <div>
-            <p className="mb-2 text-xs font-medium">Suggested locations</p>
-            <div className="flex flex-col gap-0.5 py-1">
-              {SUGGESTED_LOCATIONS.map((location) => (
-                <OptionItem
-                  key={location.name}
-                  id={location.name}
-                  label={location.name}
-                  description={location.description}
-                  className={location.className}
-                  onClick={() => {
-                    const next = state.where === location.name ? null : location.name;
-                    dispatch({ type: "SET_WHERE", value: next });
-                    if (next) dispatch({ type: "NEXT_STEP" });
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+          <LocationAutocomplete state={state} dispatch={dispatch} />
         </div>
       );
     }
