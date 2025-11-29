@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import type { JobWithRelations } from "@/types/job";
+import type { JobWithRelations } from "@/features/jobs/api";
 import { Link2, Mail } from "lucide-react";
 
 interface ShareJobProps {
