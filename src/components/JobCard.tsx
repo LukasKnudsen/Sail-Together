@@ -40,6 +40,7 @@ export default function JobCard({
                         onToggleFavorite?.(job.id);
                     }}
                     className="size-28 rounded-3xl"
+                    src={job.imageUrl}
                 />
             </div>
 
