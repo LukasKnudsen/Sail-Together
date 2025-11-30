@@ -29,14 +29,18 @@ export default function JobCard({
     return (
         <div
             aria-label="job-card"
-            className={cn("flex w-full items-center gap-3 p-3", className)}
+            className={cn("flex w-full items-center gap-3", className)}
             {...props}
         >
             <div className="relative shrink-0">
                 <CardMedia
                     isFavorite={job.isFavorite ?? false}
-                    onFavoriteClick={() => onToggleFavorite?.(job.id)}
+                    onFavoriteClick={(e) => {
+                        e.preventDefault();
+                        onToggleFavorite?.(job.id);
+                    }}
                     className="size-28 rounded-3xl"
+                    src={job.imageUrl}
                 />
             </div>
 

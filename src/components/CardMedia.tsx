@@ -1,11 +1,12 @@
 import { Heart } from "lucide-react";
-import { Media, MediaFallback } from "./ui/media";
+import { Media, MediaFallback, MediaImage } from "./ui/media";
 import { cn } from "@/lib/utils";
 
 interface CardMediaProps {
   isFavorite: boolean;
   priceKind?: string;
   className?: string;
+  src?: string;
   onFavoriteClick?: (e: React.MouseEvent) => void;
 }
 
@@ -13,6 +14,7 @@ export default function CardMedia({
   isFavorite = false,
   priceKind,
   className,
+  src,
   onFavoriteClick,
 }: CardMediaProps) {
   return (
@@ -30,7 +32,11 @@ export default function CardMedia({
           <p className="text-sm font-medium text-white">Free</p>
         </div>
       )}
-      <MediaFallback className="bg-muted" />
+      {src ? (
+        <MediaImage src={src} />
+      ) : (
+        <MediaFallback className="bg-muted" />
+      )}
     </Media>
   );
 }
