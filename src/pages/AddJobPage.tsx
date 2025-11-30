@@ -13,7 +13,7 @@ export default function AddJobPage() {
                     mutate("jobs");
                     navigate("/");
                 }}
-                onCancel={() => navigate(-1)}
+                onCancel={() => navigate("/")}
             />
         </main>
     );
