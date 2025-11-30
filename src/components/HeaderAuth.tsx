@@ -11,10 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { CircleUserRound, Heart, Map, Menu, Settings } from "lucide-react";
+import { Briefcase, CircleUserRound, Heart, Map, Menu, Settings } from "lucide-react";
+import AddJob from "./modals/AddJob";
 
 export default function HeaderAuth() {
   const [user, setUser] = useState<Parse.User | null>(null);
+  const [addJobOpen, setAddJobOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,6 +56,10 @@ export default function HeaderAuth() {
                 <Heart strokeWidth={2} />
                 Favourites
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setAddJobOpen(true)} >
+                <Briefcase strokeWidth={2} />
+                Add Job
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <Map strokeWidth={2} />
                 Trips
@@ -69,6 +75,7 @@ export default function HeaderAuth() {
               <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <AddJob open={addJobOpen} onOpenChange={setAddJobOpen} hideTrigger />
         </>
       ) : (
         <>
