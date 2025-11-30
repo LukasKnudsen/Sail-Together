@@ -4,19 +4,46 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import MapWithGeocoder from "../map/MapWithGeocoder";
 import { useState } from "react";
-import { createJob, createLocation, createJobRequirement, createJobExperience, createJobQualification } from "@/features/jobs/api";
+import { createJob } from "@/features/jobs/api";
 import { Spinner } from "../ui/spinner";
-import type { JobType } from "@/types/job";
-import { getCurrentUser } from "@/lib/parse/auth";
+import type { Job } from "@/db/types/Job";
 
-interface LocationData {
+type LocationData = {
     name: string;
     address: string;
     longitude: number;
     latitude: number;
-}
+};
 
-const JOB_TYPES: Array<{ id: JobType; label: string }> = [
+type FormState = {
+    title: string;
+    vessel: string;
+    description?: string;
+    location: LocationData | null;
+    jobType: Job["type"] | null;
+    startDate: string;
+    endDate?: string;
+    requirements: string[];
+    experience: string[];
+    qualifications: string[];
+    imageFile?: File | null;
+};
+
+const INITIAL_FORM: FormState = {
+    title: "",
+    vessel: "",
+    description: undefined,
+    location: null,
+    jobType: null,
+    startDate: "",
+    endDate: undefined,
+    requirements: [""],
+    experience: [""],
+    qualifications: [""],
+    imageFile: null,
+};
+
+const JOB_TYPES: Array<{ id: Job["type"]; label: string }> = [
     { id: "Permanent", label: "Permanent" },
     { id: "Contract", label: "Contract" },
     { id: "Seasonal", label: "Seasonal" },
@@ -41,120 +68,115 @@ const VESSEL_TYPES = [
     "Workboat/Commercial",
 ] as const;
 
-export default function AddJobForm({ className, ...props }: React.ComponentProps<"form">) {
-    const [title, setTitle] = useState("");
-    const [vessel, setVessel] = useState("");
-    const [description, setDescription] = useState("");
-    const [location, setLocation] = useState<LocationData | null>(null);
-    const [jobType, setJobType] = useState<JobType | null>(null);
-    const [startDate, setStartDate] = useState("");
-    const [endDate, setEndDate] = useState("");
-    const [requirements, setRequirements] = useState<string[]>([""]);
-    const [experience, setExperience] = useState<string[]>([""]);
-    const [qualifications, setQualifications] = useState<string[]>([""]);
+export default function AddJobForm({
+    className,
+    onSuccess,
+    onCancel,
+    ...props
+}: React.ComponentProps<"form"> & {
+    onSuccess?: () => void;
+    onCancel?: () => void;
+}) {
+    const [form, setForm] = useState<FormState>(INITIAL_FORM);
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
-    // Validation
-    const hasTitle = title.trim().length > 0;
-    const hasVessel = vessel.trim().length > 0;
-    const hasLocation = location !== null;
-    const hasJobType = jobType !== null;
-    const hasStartDate = startDate !== "";
-    const isValidDateRange = !endDate || !startDate || new Date(startDate) <= new Date(endDate);
+    const updateField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+        setForm((prev) => ({ ...prev, [key]: value }));
+    };
 
-    const isFormValid =
-        hasTitle && hasVessel && hasLocation && hasJobType && hasStartDate && isValidDateRange;
+    const resetForm = () => {
+        setForm(INITIAL_FORM);
+        setTouched({});
+        setError(null);
+        setSuccess(null);
+    };
 
-    const addListItem = (setter: React.Dispatch<React.SetStateAction<string[]>>) => {
-        setter((prev) => [...prev, ""]);
+    const addListItem = (key: "requirements" | "experience" | "qualifications") => {
+        setForm((prev) => ({ ...prev, [key]: [...prev[key], ""] }));
     };
 
     const updateListItem = (
-        setter: React.Dispatch<React.SetStateAction<string[]>>,
+        key: "requirements" | "experience" | "qualifications",
         index: number,
         value: string
     ) => {
-        setter((prev) => prev.map((item, i) => (i === index ? value : item)));
+        setForm((prev) => ({
+            ...prev,
+            [key]: prev[key].map((item, i) => (i === index ? value : item)),
+        }));
     };
 
-    const removeListItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
-        setter((prev) => prev.filter((_, i) => i !== index));
+    const removeListItem = (key: "requirements" | "experience" | "qualifications", index: number) => {
+        setForm((prev) => ({
+            ...prev,
+            [key]: prev[key].filter((_, i) => i !== index),
+        }));
+    };
+
+    const validateForm = (): string | null => {
+        if (!form.title.trim()) return "Position is required";
+        if (!form.vessel.trim()) return "Vessel type is required";
+        if (!form.location) return "Location is required";
+        if (!form.jobType) return "Job type is required";
+        if (!form.startDate) return "Start date is required";
+        if (form.endDate && new Date(form.endDate) < new Date(form.startDate)) {
+            return "End date cannot be earlier than start date";
+        }
+        return null;
+    };
+
+    const handleCancel = () => {
+        resetForm();
+        onCancel?.();
     };
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        setError(null);
+        setSuccess(null);
 
-        if (!isFormValid || isSubmitting) return;
+        setTouched({
+            title: true,
+            vessel: true,
+            jobType: true,
+            location: true,
+            startDate: true,
+        });
 
-        const currentUser = getCurrentUser();
-        if (!currentUser) {
-            setError("You must be logged in to create a job");
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
             return;
         }
 
-        setError("");
-        setSuccess("");
         setIsSubmitting(true);
-
         try {
-            // Create location first
-            if (!location) {
-                throw new Error("Location is required");
-            }
+            const filteredRequirements = form.requirements.map((r) => r.trim()).filter(Boolean);
+            const filteredExperience = form.experience.map((r) => r.trim()).filter(Boolean);
+            const filteredQualifications = form.qualifications.map((r) => r.trim()).filter(Boolean);
 
-            const locationId = await createLocation({
-                name: location.name,
-                address: location.address,
-                longitude: location.longitude,
-                latitude: location.latitude,
-            });
-
-            // Create job
-            if (!jobType) {
-                throw new Error("Job type is required");
-            }
-
-            const jobId = await createJob({
-                title: title.trim(),
-                type: jobType,
-                date: new Date(startDate),
-                vessel: vessel.trim(),
-                description: description.trim() || undefined,
-                locationId,
+            await createJob({
+                title: form.title.trim(),
+                type: form.jobType!,
+                date: new Date(form.startDate),
+                vessel: form.vessel.trim(),
+                description: form.description?.trim() || undefined,
+                location: form.location!,
                 isFavorite: false,
+                imageUrl: form.imageFile || undefined,
+                requirements: filteredRequirements.length ? filteredRequirements : undefined,
+                experiences: filteredExperience.length ? filteredExperience : undefined,
+                qualifications: filteredQualifications.length ? filteredQualifications : undefined,
             });
-
-            // Create requirements, experience, and qualifications
-            await Promise.all([
-                ...requirements
-                    .filter((r) => r.trim())
-                    .map((r, i) => createJobRequirement(jobId, r.trim(), i)),
-                ...experience
-                    .filter((e) => e.trim())
-                    .map((e, i) => createJobExperience(jobId, e.trim(), i)),
-                ...qualifications
-                    .filter((q) => q.trim())
-                    .map((q, i) => createJobQualification(jobId, q.trim(), i)),
-            ]);
 
             setSuccess("Job created successfully!");
-
-            // Reset form
-            setTitle("");
-            setVessel("");
-            setDescription("");
-            setLocation(null);
-            setJobType(null);
-            setStartDate("");
-            setEndDate("");
-            setRequirements([""]);
-            setExperience([""]);
-            setQualifications([""]);
+            onSuccess?.();
+            resetForm();
         } catch (err: any) {
-            const message = err instanceof Error ? err.message : "Failed to create job";
-            setError(message);
+            setError(err instanceof Error ? err.message : "Failed to create job");
             console.error("Error creating job:", err);
         } finally {
             setIsSubmitting(false);
@@ -170,11 +192,12 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                     id="title"
                     className={cn(
                         "border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs",
-                        "placeholder:text-muted-foreground focus-visible:ring-ring/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:outline-none",
+                        "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
                         "disabled:cursor-not-allowed disabled:opacity-50"
                     )}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    value={form.title}
+                    onChange={(e) => updateField("title", e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, title: true }))}
                     required
                 >
                     <option value="">Select a position</option>
@@ -184,7 +207,9 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                         </option>
                     ))}
                 </select>
-                {!hasTitle && <FieldError errors={[{ message: "Please select a position" }]} />}
+                {touched.title && !form.title.trim() && (
+                    <FieldError errors={[{ message: "Please select a position" }]} />
+                )}
             </Field>
 
             <Field>
@@ -194,11 +219,12 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                     id="vessel"
                     className={cn(
                         "border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs",
-                        "placeholder:text-muted-foreground focus-visible:ring-ring/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:outline-none",
+                        "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
                         "disabled:cursor-not-allowed disabled:opacity-50"
                     )}
-                    value={vessel}
-                    onChange={(e) => setVessel(e.target.value)}
+                    value={form.vessel}
+                    onChange={(e) => updateField("vessel", e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, vessel: true }))}
                     required
                 >
                     <option value="">Select a vessel type</option>
@@ -208,7 +234,9 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                         </option>
                     ))}
                 </select>
-                {!hasVessel && <FieldError errors={[{ message: "Please select a vessel type" }]} />}
+                {touched.vessel && !form.vessel.trim() && (
+                    <FieldError errors={[{ message: "Please select a vessel type" }]} />
+                )}
             </Field>
 
             <Field>
@@ -218,15 +246,18 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                         <Button
                             key={type.id}
                             type="button"
-                            variant={jobType === type.id ? "default" : "outline"}
+                            variant={form.jobType === type.id ? "default" : "outline"}
                             className="py-8"
-                            onClick={() => setJobType(type.id)}
+                            onClick={() => updateField("jobType", type.id)}
+                            onBlur={() => setTouched((t) => ({ ...t, jobType: true }))}
                         >
                             {type.label}
                         </Button>
                     ))}
                 </div>
-                {!hasJobType && <FieldError errors={[{ message: "Please select a job type" }]} />}
+                {touched.jobType && !form.jobType && (
+                    <FieldError errors={[{ message: "Please select a job type" }]} />
+                )}
             </Field>
 
             <Field>
@@ -238,20 +269,30 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                     id="description"
                     className={cn(
                         "border-input flex min-h-[120px] w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs",
-                        "placeholder:text-muted-foreground focus-visible:ring-ring/50 focus-visible:border-ring focus-visible:ring-[3px] focus-visible:outline-none",
+                        "placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
                         "disabled:cursor-not-allowed disabled:opacity-50"
                     )}
                     placeholder="e.g. Daily maintenance, watch keeping, guest service..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    value={form.description || ""}
+                    onChange={(e) => updateField("description", e.target.value || undefined)}
                 />
             </Field>
 
             <Field>
-                <FieldLabel htmlFor="place">Where will the crew join the vessel?</FieldLabel>
-                <FieldDescription>Add the marina, harbor, or meeting point on the map.</FieldDescription>
-                <MapWithGeocoder onLocationSelect={(loc) => setLocation(loc)} value={location} />
-                {!hasLocation && (
+                <FieldLabel htmlFor="place">Location</FieldLabel>
+                <FieldDescription>Select where crew will join the vessel.</FieldDescription>
+                <MapWithGeocoder
+                    onLocationSelect={(loc) =>
+                        updateField("location", {
+                            name: loc.name,
+                            address: loc.address,
+                            longitude: loc.longitude,
+                            latitude: loc.latitude,
+                        })
+                    }
+                    value={form.location}
+                />
+                {touched.location && !form.location && (
                     <FieldError errors={[{ message: "Please select a location on the map" }]} />
                 )}
             </Field>
@@ -262,11 +303,14 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                 <Input
                     id="startDate"
                     type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    value={form.startDate}
+                    onChange={(e) => updateField("startDate", e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, startDate: true }))}
                     required
                 />
-                {!hasStartDate && <FieldError errors={[{ message: "Start date is required" }]} />}
+                {touched.startDate && !form.startDate && (
+                    <FieldError errors={[{ message: "Start date is required" }]} />
+                )}
             </Field>
 
             <Field>
@@ -275,11 +319,11 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
                 <Input
                     id="endDate"
                     type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate || undefined}
+                    value={form.endDate || ""}
+                    onChange={(e) => updateField("endDate", e.target.value || undefined)}
+                    min={form.startDate || undefined}
                 />
-                {!isValidDateRange && (
+                {form.endDate && form.startDate && new Date(form.endDate) < new Date(form.startDate) && (
                     <FieldError errors={[{ message: "End date cannot be earlier than start date" }]} />
                 )}
             </Field>
@@ -287,24 +331,24 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
             <Field>
                 <FieldLabel>Requirements (Optional)</FieldLabel>
                 <FieldDescription>Add specific requirements for this position.</FieldDescription>
-                {requirements.map((req, index) => (
+                {form.requirements.map((req, index) => (
                     <div key={index} className="flex gap-2">
                         <Input
                             placeholder="e.g. STCW, ENG1"
                             value={req}
-                            onChange={(e) => updateListItem(setRequirements, index, e.target.value)}
+                            onChange={(e) => updateListItem("requirements", index, e.target.value)}
                         />
                         <Button
                             type="button"
                             variant="secondary"
-                            onClick={() => removeListItem(setRequirements, index)}
-                            disabled={requirements.length === 1}
+                            onClick={() => removeListItem("requirements", index)}
+                            disabled={form.requirements.length === 1}
                         >
                             Remove
                         </Button>
                     </div>
                 ))}
-                <Button type="button" variant="outline" onClick={() => addListItem(setRequirements)}>
+                <Button type="button" variant="outline" onClick={() => addListItem("requirements")}>
                     Add requirement
                 </Button>
             </Field>
@@ -312,24 +356,24 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
             <Field>
                 <FieldLabel>Experience (Optional)</FieldLabel>
                 <FieldDescription>Specify experience requirements.</FieldDescription>
-                {experience.map((exp, index) => (
+                {form.experience.map((exp, index) => (
                     <div key={index} className="flex gap-2">
                         <Input
                             placeholder="e.g. 3+ years on yachts"
                             value={exp}
-                            onChange={(e) => updateListItem(setExperience, index, e.target.value)}
+                            onChange={(e) => updateListItem("experience", index, e.target.value)}
                         />
                         <Button
                             type="button"
                             variant="secondary"
-                            onClick={() => removeListItem(setExperience, index)}
-                            disabled={experience.length === 1}
+                            onClick={() => removeListItem("experience", index)}
+                            disabled={form.experience.length === 1}
                         >
                             Remove
                         </Button>
                     </div>
                 ))}
-                <Button type="button" variant="outline" onClick={() => addListItem(setExperience)}>
+                <Button type="button" variant="outline" onClick={() => addListItem("experience")}>
                     Add experience
                 </Button>
             </Field>
@@ -337,26 +381,40 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
             <Field>
                 <FieldLabel>Qualifications (Optional)</FieldLabel>
                 <FieldDescription>List required qualifications.</FieldDescription>
-                {qualifications.map((qual, index) => (
+                {form.qualifications.map((qual, index) => (
                     <div key={index} className="flex gap-2">
                         <Input
                             placeholder="e.g. Food hygiene, Tanker endorsement"
                             value={qual}
-                            onChange={(e) => updateListItem(setQualifications, index, e.target.value)}
+                            onChange={(e) => updateListItem("qualifications", index, e.target.value)}
                         />
                         <Button
                             type="button"
                             variant="secondary"
-                            onClick={() => removeListItem(setQualifications, index)}
-                            disabled={qualifications.length === 1}
+                            onClick={() => removeListItem("qualifications", index)}
+                            disabled={form.qualifications.length === 1}
                         >
                             Remove
                         </Button>
                     </div>
                 ))}
-                <Button type="button" variant="outline" onClick={() => addListItem(setQualifications)}>
+                <Button type="button" variant="outline" onClick={() => addListItem("qualifications")}>
                     Add qualification
                 </Button>
+            </Field>
+
+            <Field>
+                <FieldLabel htmlFor="image">Vessel Photo (Optional)</FieldLabel>
+                <Input
+                    id="image"
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    className="border-2 border-dashed"
+                    onChange={(e) => updateField("imageFile", e.target.files?.[0] || null)}
+                />
+                {form.imageFile && (
+                    <p className="text-sm text-muted-foreground">Selected: {form.imageFile.name}</p>
+                )}
             </Field>
 
             {error && (
@@ -382,33 +440,15 @@ export default function AddJobForm({ className, ...props }: React.ComponentProps
             <div className="flex gap-2">
                 <Button
                     type="button"
-                    size={"lg"}
-                    variant={"secondary"}
+                    size="lg"
+                    variant="secondary"
                     className="flex-1"
-                    onClick={() => {
-                        setTitle("");
-                        setVessel("");
-                        setDescription("");
-                        setLocation(null);
-                        setJobType(null);
-                        setStartDate("");
-                        setEndDate("");
-                        setRequirements([""]);
-                        setExperience([""]);
-                        setQualifications([""]);
-                        setError("");
-                        setSuccess("");
-                    }}
+                    onClick={handleCancel}
                 >
                     Cancel
                 </Button>
 
-                <Button
-                    type="submit"
-                    size={"lg"}
-                    className="flex-1"
-                    disabled={!isFormValid || isSubmitting}
-                >
+                <Button type="submit" size="lg" className="flex-1" disabled={isSubmitting}>
                     {isSubmitting && <Spinner />}
                     Create Job
                 </Button>
