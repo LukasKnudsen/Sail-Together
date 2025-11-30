@@ -2,6 +2,7 @@ import useSWR from "swr";
 import TwoColumnLayout from "@/components/layouts/TwoColumnLayout";
 import JobList from "@/components/JobList";
 import JobCard from "@/components/JobCard";
+import JobCardSkeleton from "@/components/JobCardSkeleton";
 import { getJobs } from "@/features/jobs/api";
 import { useToggleJobFavorite } from "@/features/jobs/useToggleJobFavorite";
 import { Link } from "react-router-dom";
@@ -25,9 +26,11 @@ export default function Home() {
           sidebar={
             <JobList title="jobs within map area" count={data?.length} isLoading={isLoading}>
               {isLoading ? (
-                <div className="flex h-[50vh] items-center justify-center">
-                  <p>Loading jobs...</p>
-                </div>
+                Array.from({ length: 6 }).map((_, i) => (
+                  <li key={i}>
+                    <JobCardSkeleton />
+                  </li>
+                ))
               ) : error ? (
                 <li className="text-destructive">Error loading jobs: {String(error.message ?? error)}</li>
               ) : data && data.length > 0 ? (
