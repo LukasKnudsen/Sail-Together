@@ -15,6 +15,7 @@ import AuthLayout from "@/layouts/AuthLayout";
 import ProfileEdit from "@/pages/ProfileEdit";
 import MapPageLayout from "@/layouts/MapPageLayout";
 import Test from "@/pages/Test";
+import AddJobPage from "@/pages/AddJobPage";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
 
       <Route element={<RootLayout />}>
         <Route path="/jobs/:jobId" element={<JobPage />} />
+        <Route path="/add-job" element={<AddJobPage />} />
         <Route path="/events" element={<Events />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/profile" element={<Profile />} />
