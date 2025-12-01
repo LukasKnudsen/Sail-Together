@@ -48,7 +48,6 @@ export default function CreatePostForm({
       await createPost({
         mediaUrl: mediaUrl.trim() || undefined,
         mediaAlt: caption.trim() || "",
-        // Missing loc for formula, therefore empty string
         locationId: "",
         imageFile,
       });
@@ -92,16 +91,27 @@ export default function CreatePostForm({
     >
       <Field>
         <FieldLabel htmlFor="caption">Text for post</FieldLabel>
-        <FieldDescription>
-          Share whats on your mind
-        </FieldDescription>
-        <Input
+        <FieldDescription>Share whats on your mind</FieldDescription>
+
+        <textarea
           id="caption"
-          type="text"
           placeholder="What's on your mind?"
           value={caption}
-          onChange={(e) => setCaption(e.target.value)}
+          maxLength={1500}
+          onChange={(e) => {
+            const value = e.target.value.slice(0, 1500);
+            setCaption(value);
+          }}
+          className={cn(
+            "mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "min-h-[80px] max-h-60 overflow-y-auto resize-none"
+          )}
         />
+
+        <div className="mt-1 text-right text-xs text-muted-foreground">
+          {caption.length}/1500
+        </div>
       </Field>
 
       <Field>
