@@ -70,13 +70,15 @@ export function PostCard({ post }: PostCardProps) {
         createdAt={String(createdAt)}
       />
 
-      <figure className="mt-2 overflow-hidden rounded-2xl">
-        <img
-          src={mediaUrl}
-          alt={mediaAlt ?? "Sail Away post"}
-          className="h-auto w-full"
-          loading="lazy"
-        />
+<figure className="mt-2 overflow-hidden rounded-2xl">
+        <div className="relative w-full aspect-square">
+          <img
+            src={mediaUrl}
+            alt={mediaAlt ?? "Sail Away post"}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        </div>
       </figure>
 
       {mediaAlt && (
