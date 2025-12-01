@@ -8,35 +8,41 @@ export function useToggleJobFavorite(key: string | null) {
 
         await mutate(
             key,
-            async (
-                current: JobAttributes[] | JobAttributes | null | undefined
-            ): Promise<typeof current> => {
+            (current: JobAttributes[] | JobAttributes | null | undefined) => {
                 if (!current) return current;
 
                 if (Array.isArray(current)) {
-                    const optimistic = current.map(j =>
+                    return current.map(j =>
                         j.id === id ? { ...j, isFavorite: !j.isFavorite } : j
                     );
-                    try {
-                        const newStatus = await toggleJobFavorite(id);
-                        return optimistic.map(j =>
-                            j.id === id ? { ...j, isFavorite: newStatus } : j
-                        );
-                    } catch {
-                        return current;
-                    }
                 }
 
                 if (current.id !== id) return current;
-                const optimisticSingle = { ...current, isFavorite: !current.isFavorite };
-                try {
-                    const newStatus = await toggleJobFavorite(id);
-                    return { ...optimisticSingle, isFavorite: newStatus };
-                } catch {
-                    return current;
-                }
+                return { ...current, isFavorite: !current.isFavorite };
             },
             { revalidate: false }
         );
+
+        try {
+            const newStatus = await toggleJobFavorite(id);
+            await mutate(
+                key,
+                (current: JobAttributes[] | JobAttributes | null | undefined) => {
+                    if (!current) return current;
+
+                    if (Array.isArray(current)) {
+                        return current.map(j =>
+                            j.id === id ? { ...j, isFavorite: newStatus } : j
+                        );
+                    }
+
+                    if (current.id !== id) return current;
+                    return { ...current, isFavorite: newStatus };
+                },
+                { revalidate: false }
+            );
+        } catch (error) {
+            await mutate(key, undefined, { revalidate: true });
+        }
     };
 }
