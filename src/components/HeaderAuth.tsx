@@ -50,7 +50,7 @@ export default function HeaderAuth() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="mt-2 w-60 rounded-xl py-2 font-medium">
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/favourites")}>
                 <Heart strokeWidth={2} />
                 Favourites
               </DropdownMenuItem>

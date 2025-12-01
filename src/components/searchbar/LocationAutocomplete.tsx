@@ -107,8 +107,26 @@ export default function LocationAutocomplete({ state, dispatch }: LocationAutoco
   const handleClear = () => {
     setQuery("");
     setSuggestions([]);
-    dispatch({ type: "SET_WHERE", value: null });
+    dispatch({ type: "SET_WHERE", value: null, coordinates: null });
     inputRef.current?.focus();
+  };
+
+  const selectLocation = (
+    locationName: string,
+    coordinates: { longitude: number; latitude: number } | null
+  ) => {
+    const isSame = state.where === locationName;
+    const next = isSame ? null : locationName;
+
+    dispatch({ type: "SET_WHERE", value: next, coordinates: next ? coordinates : null });
+
+    if (next) {
+      setQuery(locationName);
+      setSuggestions([]);
+      dispatch({ type: "NEXT_STEP" });
+    } else {
+      setQuery("");
+    }
   };
 
   return (
@@ -135,23 +153,20 @@ export default function LocationAutocomplete({ state, dispatch }: LocationAutoco
         <div className="flex flex-col gap-0.5 py-1">
           {suggestions.map((suggestion) => {
             const locationName = suggestion.properties.name;
+            const coordinates = suggestion.geometry?.coordinates
+              ? {
+                  longitude: suggestion.geometry.coordinates[0],
+                  latitude: suggestion.geometry.coordinates[1],
+                }
+              : null;
+
             return (
               <OptionItem
                 key={suggestion.id}
                 id={suggestion.id}
                 label={locationName}
                 description={suggestion.properties.full_address}
-                onClick={() => {
-                  const next = state.where === locationName ? null : locationName;
-                  dispatch({ type: "SET_WHERE", value: next });
-                  if (next) {
-                    setQuery(locationName);
-                    setSuggestions([]);
-                    dispatch({ type: "NEXT_STEP" });
-                  } else {
-                    setQuery("");
-                  }
-                }}
+                onClick={() => selectLocation(locationName, coordinates)}
                 color="bg-secondary"
                 icon={<MapPin className="text-muted-foreground size-8" />}
               />
@@ -168,17 +183,7 @@ export default function LocationAutocomplete({ state, dispatch }: LocationAutoco
               id={location.name}
               label={location.name}
               description={location.description}
-              onClick={() => {
-                const next = state.where === location.name ? null : location.name;
-                dispatch({ type: "SET_WHERE", value: next });
-                if (next) {
-                  setQuery(location.name);
-                  setSuggestions([]);
-                  dispatch({ type: "NEXT_STEP" });
-                } else {
-                  setQuery("");
-                }
-              }}
+              onClick={() => selectLocation(location.name, null)}
               className={location.className}
               color="bg-secondary"
               icon={<MapPin className="text-muted-foreground size-8" />}

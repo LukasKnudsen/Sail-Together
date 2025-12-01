@@ -21,15 +21,26 @@ function formatEventDate(date: Date | string | undefined): string {
 export default function EventCard({
   event,
   className,
+  onToggleFavorite,
   ...props
-}: React.ComponentProps<"div"> & { event: EventAttributes }) {
+}: React.ComponentProps<"div"> & {
+  event: EventAttributes;
+  onToggleFavorite?: (id: string) => void;
+}) {
   return (
     <div
       aria-label="event-card"
       className={cn("flex aspect-square w-full flex-col gap-2", className)}
       {...props}
     >
-      <CardMedia isFavorite={event.isFavorite ?? false} priceKind={event.priceKind} />
+      <CardMedia
+        isFavorite={event.isFavorite ?? false}
+        priceKind={event.priceKind}
+        onFavoriteClick={(e) => {
+          e.stopPropagation();
+          onToggleFavorite?.(event.id);
+        }}
+      />
 
       <div className="flex w-full flex-col gap-1 px-1">
         <h3 className="leading-tight font-semibold">{event.title}</h3>

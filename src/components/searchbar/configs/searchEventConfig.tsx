@@ -4,6 +4,7 @@ import type { CategorySlug } from "@/types/category";
 import WhenPanel from "../WhenPanel";
 import OptionItem from "../OptionItem";
 import LocationAutocomplete from "../LocationAutocomplete";
+import { useEventStore } from "@/store/useEventStore";
 
 export interface SuggestedLocation {
   name: string;
@@ -109,6 +110,7 @@ export type EventSearchState = {
   isOpen: boolean;
   stepIndex: number;
   where: string | null;
+  whereCoordinates?: { longitude: number; latitude: number } | null;
   eventType: CategorySlug | null;
   when?: DateRange | undefined;
 };
@@ -118,9 +120,22 @@ export type EventSearchAction =
   | { type: "CLOSE" }
   | { type: "TOGGLE_TAB"; index: number }
   | { type: "NEXT_STEP" }
-  | { type: "SET_WHERE"; value: string | null }
+  | {
+      type: "SET_WHERE";
+      value: string | null;
+      coordinates?: { longitude: number; latitude: number } | null;
+    }
   | { type: "SET_EVENT_TYPE"; value: CategorySlug | null }
   | { type: "SET_WHEN"; value: DateRange | undefined };
+
+export const INITIAL_EVENT_SEARCH_STATE: EventSearchState = {
+  isOpen: false,
+  stepIndex: 0,
+  where: null,
+  whereCoordinates: null,
+  eventType: null,
+  when: undefined,
+};
 
 export function eventSearchReducer(
   state: EventSearchState,
@@ -139,7 +154,7 @@ export function eventSearchReducer(
     case "NEXT_STEP":
       return { ...state, stepIndex: Math.min(state.stepIndex + 1, 2) };
     case "SET_WHERE":
-      return { ...state, where: action.value };
+      return { ...state, where: action.value, whereCoordinates: action.coordinates ?? null };
     case "SET_EVENT_TYPE":
       return { ...state, eventType: action.value };
     case "SET_WHEN":
@@ -160,18 +175,29 @@ export const searchEventConfig = {
     isOpen: false,
     stepIndex: 0,
     where: null,
+    whereCoordinates: null,
     eventType: null,
     when: undefined,
   } as EventSearchState,
   reducer: eventSearchReducer,
   getTabLabel: (stepId: string, state: EventSearchState) => {
+    // Check store to see if search was performed
+    const storeFilters = useEventStore.getState().searchFilters;
+    const hasActiveSearch = storeFilters.where || storeFilters.eventType;
+
     switch (stepId) {
       case "where":
         return state.where ?? "Where";
       case "type":
-        return EVENT_TYPES.find((type) => type.id === state.eventType)?.label ?? "Type";
+        return state.eventType
+          ? (EVENT_TYPES.find((type) => type.id === state.eventType)?.label ?? "Type")
+          : "All Events";
       case "when":
-        return labelForRange(state.when) ?? "When";
+        if (!state.when?.from) {
+          // If no date selected but search was performed, show "Any week"
+          return hasActiveSearch ? "Any week" : "When";
+        }
+        return labelForRange(state.when);
       default:
         return "";
     }
@@ -193,6 +219,17 @@ export const searchEventConfig = {
       return (
         <div className="flex flex-col px-6">
           <div className="flex flex-col gap-0.5 py-1">
+            <OptionItem
+              id="all"
+              label="All Events"
+              description="Show all event types"
+              color="bg-gray-100"
+              onClick={() => {
+                const next = state.eventType === null ? null : null;
+                dispatch({ type: "SET_EVENT_TYPE", value: next });
+                dispatch({ type: "NEXT_STEP" });
+              }}
+            />
             {EVENT_TYPES.map((type) => (
               <OptionItem
                 key={type.id}
@@ -223,5 +260,13 @@ export const searchEventConfig = {
 
     return null;
   },
-  canSearch: (state: EventSearchState) => !!state.where && !!state.eventType && !!state.when?.from,
+  canSearch: (state: EventSearchState) => !!state.where,
+  onSearch: (state: EventSearchState) => {
+    useEventStore.getState().setSearchFilters({
+      where: state.where,
+      whereCoordinates: state.whereCoordinates,
+      eventType: state.eventType,
+      when: state.when,
+    });
+  },
 };
