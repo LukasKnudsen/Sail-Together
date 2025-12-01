@@ -25,7 +25,7 @@ export default function LoginForm({ className, ...props }: React.ComponentProps<
 
     try {
       await logIn({ username, password });
-      navigate("/profile");
+      navigate("/");
     } catch (err: any) {
       const message =
         err instanceof Error && err.message

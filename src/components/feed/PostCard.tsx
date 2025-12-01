@@ -23,6 +23,18 @@ function getUserName(name: string) {
     .join("");
 }
 
+/** Capitalize each word in a name for proper display. */
+function capitalizeName(name: string): string {
+  return name
+    .trim()
+    .split(" ")
+    .map((word) => {
+      if (!word) return "";
+      return word[0].toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
 /** Relative time being tracked. */
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -109,13 +121,13 @@ function Header(props: {
   return (
     <header className="flex items-center gap-3 px-2 py-1">
       <Avatar className="h-8 w-8">
-        <AvatarImage src={avatarUrl} alt={name} />
+        {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
         <AvatarFallback>{getUserName(name)}</AvatarFallback>
       </Avatar>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate font-medium">{name}</p>
+          <p className="truncate font-medium">{capitalizeName(name)}</p>
           {locationName && <span className="truncate text-xs text-gray-500">• {locationName}</span>}
         </div>
         <p className="text-xs text-gray-400">{timeAgo(createdAt)}</p>

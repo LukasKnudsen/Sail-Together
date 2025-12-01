@@ -19,8 +19,8 @@ export async function getPostsWithRelations(): Promise<PostWithRelations[]> {
 
     user: {
       id: p.userId ?? "",
-      name: p.userName ?? "Unknown sailor",
-      avatarUrl: "", 
+      name: p.userDisplayName ?? p.userName ?? "Unknown sailor",
+      avatarUrl: p.userAvatarUrl ?? "", 
     },
 
     location: p.locationId

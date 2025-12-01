@@ -48,10 +48,6 @@ export default function Profile() {
           <h1 id="profile-name" className="text-2xl font-bold">
             {name}
           </h1>
-          {/* Edit Profile Button - matching Add Listing style */}
-          <Button variant="secondary" onClick={() => navigate("/profile/edit")} className="mt-2">
-            Edit Profile
-          </Button>
           <div className="flex items-center gap-2">
             <Rating value={rating ?? 0} max={5} size={24} />
             <span className="sr-only">{rating} out of 5 stars</span>
@@ -71,6 +67,11 @@ export default function Profile() {
 
           <ContactActions email={email} phone={phone} />
         </header>
+
+          {/* Edit Profile Button - matching Add Listing style */}
+          <Button size={"sm"} variant="secondary" onClick={() => navigate("/profile/edit")} className="max-w-xs mx-auto">
+            Edit Profile
+          </Button>
 
         <section>
           <h2 className="text-xl font-semibold">About Me</h2>
