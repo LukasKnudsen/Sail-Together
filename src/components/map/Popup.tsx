@@ -53,8 +53,8 @@ export default function Popup({ map, feature }: PopupProps) {
   return (
     <>
       {createPortal(
-        <div className="bg-card overflow-hidden rounded-xl border">
-          <div className="relative aspect-square size-40 bg-neutral-300"></div>
+        <div className="bg-card overflow-hidden rounded-xl border border-border">
+          <div className="relative aspect-square size-40 bg-muted"></div>
           <div className="p-2">
             <p className="text-base font-medium">{properties.title}</p>
           </div>

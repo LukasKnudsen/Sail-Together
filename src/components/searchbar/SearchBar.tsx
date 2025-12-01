@@ -18,7 +18,6 @@ export interface SearchOption {
 
 export interface SearchBarConfig<TState extends Record<string, any>> {
   steps: SearchStep[];
-  maxWidth?: string;
   ariaLabel?: string;
   initialState: TState;
   reducer: (state: TState, action: any) => TState;
@@ -36,12 +35,11 @@ export default function SearchBar<TState extends Record<string, any>>({
   config,
 }: SearchBarProps<TState>) {
   const [state, dispatch] = useReducer(config.reducer, config.initialState);
+  const activeStep = config.steps[state.stepIndex as number];
+
   const containerRef = useClickAway<HTMLDivElement>(() => {
     dispatch({ type: "CLOSE" });
   });
-
-  
-  const activeStep = config.steps[state.stepIndex as number];
 
   useEffect(() => {
     if (!state.isOpen) return;
@@ -64,7 +62,7 @@ export default function SearchBar<TState extends Record<string, any>>({
   return (
     <div
       ref={containerRef}
-      className={cn("relative mx-auto flex w-full max-w-2xl flex-col items-center")}
+      className="relative mx-auto flex w-full max-w-2xl flex-col items-center"
     >
       <div
         role="tablist"
@@ -75,16 +73,12 @@ export default function SearchBar<TState extends Record<string, any>>({
         {config.steps.map((step, i) => {
           const isTabActive = state.isOpen && state.stepIndex === i;
           const tabId = `tab-${step.id.toLowerCase()}`;
-          const panelId = `panel-${step.id.toLowerCase()}`;
           const tabLabel = config.getTabLabel(step.id, state);
-
           return (
             <button
               key={step.id}
               role="tab"
               id={tabId}
-              aria-controls={panelId}
-              aria-selected={isTabActive}
               type="button"
               className={cn(
                 "focus-visible:border-ring w-full truncate rounded-full px-3 py-1.5 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
@@ -110,10 +104,9 @@ export default function SearchBar<TState extends Record<string, any>>({
         <div
           role="tabpanel"
           id={`panel-${activeStep.id.toLowerCase()}`}
-          aria-labelledby={`tab-${activeStep.id.toLowerCase()}`}
           className="bg-card border-border absolute top-full z-40 mt-2 w-full overflow-hidden rounded-3xl border py-6 shadow-lg"
         >
-            {config.renderStepContent(activeStep.id, state, dispatch)}
+          {config.renderStepContent(activeStep.id, state, dispatch)}
         </div>
       )}
     </div>
