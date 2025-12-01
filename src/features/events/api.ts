@@ -36,6 +36,7 @@ function parseToJSON<T>(obj: Event): T {
     startDate: obj.get("startDate"),
     endDate: obj.get("endDate") || null,
     priceAmount: obj.get("priceAmount") || null,
+    isFavorite: obj.get("isFavorite") || false,
     createdAt: obj.get("createdAt"),
     updatedAt: obj.get("updatedAt"),
   } as T;
@@ -174,6 +175,32 @@ export async function createEvent({
   // Save - Parse will automatically save the Location first
   const saved = await event.save();
   return saved as Event;
+}
+
+export async function toggleEventFavorite(id: string): Promise<boolean> {
+  const query = new Parse.Query(Event);
+  
+  try {
+    const event = await query.get(id);
+    const newStatus = !event.isFavorite;
+    event.isFavorite = newStatus;
+    await event.save();
+    return newStatus;
+  } catch (err: any) {
+    console.error("Failed to toggle favorite:", err.message);
+    throw err;
+  }
+}
+
+export async function getFavoriteEvents(): Promise<EventAttributes[]> {
+  const query = new Parse.Query(Event);
+  query.include("locationId");
+  query.include("createdById");
+  query.equalTo("isFavorite", true);
+  query.descending("createdAt");
+
+  const results = await query.find();
+  return results.map((event) => parseToJSON<EventAttributes>(event));
 }
 
 

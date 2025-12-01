@@ -8,6 +8,7 @@ import { useEventStore } from "@/store/useEventStore";
 import { useEffect, useMemo } from "react";
 import Map from "@/components/map/Map";
 import { eventsToGeoJson } from "@/lib/eventsToGeoJSON";
+import { useToggleEventFavorite } from "@/features/events/useToggleEventFavorite";
 
 export default function Events() {
   const searchFilters = useEventStore((state) => state.searchFilters);
@@ -40,6 +41,10 @@ export default function Events() {
     revalidateIfStale: true,
   });
 
+  const toggleFavorite = useToggleEventFavorite(
+    typeof searchKey === "string" ? searchKey : Array.isArray(searchKey) ? searchKey.join("-") : null
+  );
+
   // Convert events to GeoJSON for the map
   const eventsGeoJSON = useMemo(() => {
     if (!data || data.length === 0) return undefined;
@@ -57,7 +62,9 @@ export default function Events() {
               ) : error ? (
                 <div className="text-destructive">Error loading events: {error.message}</div>
               ) : data && data.length > 0 ? (
-                data.map((event) => <EventCard key={event.id} event={event} />)
+                data.map((event) => (
+                  <EventCard key={event.id} event={event} onToggleFavorite={toggleFavorite} />
+                ))
               ) : (
                 <div className="text-muted-foreground">No events found</div>
               )}
