@@ -3,7 +3,7 @@ import avatarClara from "@/assets/avatar.png";
 
 export const USER: User = {
   id: "1",
-  name: "Clara Andersen",
+  name: "Clara Amber",
   email: "clara.andersen@example.com",
   phone: "+45 5023 9876",
   avatarUrl: avatarClara,

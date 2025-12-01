@@ -5,6 +5,8 @@ export type Post = {
   id: string;
   userId: string | null;
   userName: string | null;
+  userAvatarUrl: string | null;
+  userDisplayName: string | null;
   mediaUrl: string;
   mediaAlt: string | null;
   locationId: string | null;
@@ -29,6 +31,8 @@ function mapPost(p: Parse.Object): Post {
     id: p.id,
     userId: user?.id ?? null,
     userName: (user && user.get("username")) ?? null,
+    userAvatarUrl: (user && user.get("avatarUrl")) ?? null,
+    userDisplayName: (user && user.get("name")) ?? null,
     mediaUrl: p.get("mediaUrl"),
     mediaAlt: p.get("mediaAlt") ?? null,
     locationId: location?.id ?? null,

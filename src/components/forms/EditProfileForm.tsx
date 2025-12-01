@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Field, FieldLabel, FieldDescription } from "../ui/field";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { useCurrentUserProfile, useUpdateProfile } from "@/features/profile/hooks";
+import Parse from "@/lib/parse/client";
 
 type EditProfileFormProps = React.ComponentProps<"form"> & {
   onCancel?: () => void;
@@ -27,6 +29,10 @@ export default function EditProfileForm({
   const [about, setAbout] = useState("");
   const [skillsInput, setSkillsInput] = useState("");
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -41,6 +47,15 @@ export default function EditProfileForm({
       setSkillsInput(profile.skills?.join(", ") || "");
     }
   }, [profile]);
+
+  // Clean up preview URL when component unmounts or file changes
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const isFormValid = name.trim().length > 0;
 
@@ -59,14 +74,30 @@ export default function EditProfileForm({
         .map((s) => s.trim())
         .filter((s) => s.length > 0);
 
+      let finalAvatarUrl = avatarUrl.trim() || undefined;
+
+      // If a file is selected, upload it to Parse first
+      if (selectedFile) {
+        const parseFile = new Parse.File(selectedFile.name, selectedFile);
+        await parseFile.save();
+        finalAvatarUrl = parseFile.url() || finalAvatarUrl;
+      }
+
       await update({
         name: name.trim(),
         phone: phone.trim() || undefined,
-        avatarUrl: avatarUrl.trim() || undefined,
+        avatarUrl: finalAvatarUrl,
         location: location.trim() || undefined,
         about: about.trim() || undefined,
         skills: skillsArray.length > 0 ? skillsArray : undefined,
       });
+
+      // Clear file selection after successful upload
+      setSelectedFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
 
       setSuccess("Profile updated successfully!");
 
@@ -92,6 +123,17 @@ export default function EditProfileForm({
       setAbout(profile.about || "");
       setSkillsInput(profile.skills?.join(", ") || "");
     }
+    
+    // Clear file selection and preview
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+    
     setError("");
     setSuccess("");
 
@@ -99,6 +141,46 @@ export default function EditProfileForm({
       onCancel();
     }
   }
+
+  function handleAvatarClick() {
+    fileInputRef.current?.click();
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
+      return;
+    }
+
+    // Validate file size (e.g., max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      setError("Image size must be less than 5MB");
+      return;
+    }
+
+    setSelectedFile(file);
+    setError("");
+
+    // Create preview URL
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  }
+
+  // Get the avatar URL to display (preview or existing)
+  const displayAvatarUrl = previewUrl || avatarUrl || undefined;
+  const displayName = name.trim() || profile?.name || "";
+  const avatarInitials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .filter((char) => char)
+    .join("")
+    .toUpperCase()
+    .slice(0, 2) || "U";
 
   if (isLoadingProfile) {
     return (
@@ -119,34 +201,37 @@ export default function EditProfileForm({
 
   return (
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6 py-4", className)} {...props}>
-      {/* Avatar URL */}
+      {/* Avatar Upload */}
       <Field>
-        <FieldLabel htmlFor="avatarUrl">Profile Picture URL</FieldLabel>
-        <FieldDescription>Enter a URL to your profile picture</FieldDescription>
-        <Input
-          id="avatarUrl"
-          type="url"
-          placeholder="https://example.com/avatar.jpg"
-          value={avatarUrl}
-          onChange={(e) => setAvatarUrl(e.target.value)}
-        />
-      </Field>
-
-      {/* Avatar Preview */}
-      {avatarUrl && (
+        <FieldLabel>Profile Picture</FieldLabel>
+        <FieldDescription>Click on the avatar to upload a new image from your device</FieldDescription>
         <div className="flex justify-center">
-          <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-gray-200">
-            <img
-              src={avatarUrl}
-              alt="Avatar preview"
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = "https://via.placeholder.com/96";
-              }}
-            />
-          </div>
+          <button
+            type="button"
+            onClick={handleAvatarClick}
+            className="relative group cursor-pointer"
+            aria-label="Change profile picture"
+          >
+            <Avatar className="size-24 rounded-full border-2 border-gray-300 group-hover:border-gray-400 transition-colors">
+              <AvatarImage src={displayAvatarUrl} alt="Profile avatar" />
+              <AvatarFallback className="bg-[#FFC7D6] text-lg font-semibold">
+                {avatarInitials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-white text-xs font-medium">Change</span>
+            </div>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+            aria-label="Profile picture file input"
+          />
         </div>
-      )}
+      </Field>
 
       {/* Name */}
       <Field>
