@@ -5,7 +5,7 @@ export default function GuestRoute({ children }: { children: React.ReactNode }) 
   const user = getCurrentUser();
 
   if (user) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

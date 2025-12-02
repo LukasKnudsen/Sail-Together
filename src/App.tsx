@@ -17,6 +17,7 @@ import MapPageLayout from "@/layouts/MapPageLayout";
 import Test from "@/pages/Test";
 import AddJobPage from "@/pages/AddJobPage";
 import Favourites from "@/pages/Favourites";
+import ProtectedRoute from "./layouts/ProtectedRoute";
 
 function App() {
   return (
@@ -36,7 +37,11 @@ function App() {
         <Route path="/events" element={<Events />} />
         <Route path="/favourites" element={<Favourites />} />
         <Route path="/explore" element={<Explore />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
         <Route path="/profile/edit" element={<ProfileEdit />} />
       </Route>
 
