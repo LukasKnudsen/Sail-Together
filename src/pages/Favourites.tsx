@@ -25,7 +25,7 @@ export default function Favourites() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {isLoading ? (
-          Array.from({ length: 9 }).map((_, i) => <EventCardSkeleton key={i} />)
+          Array.from({ length: 10 }).map((_, i) => <EventCardSkeleton key={i} />)
         ) : error ? (
           <div className="text-destructive">Error loading favourite events: {error.message}</div>
         ) : data && data.length > 0 ? (
