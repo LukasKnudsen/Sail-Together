@@ -7,7 +7,7 @@ import { Spinner } from "../ui/spinner";
 import { useUpdatePassword } from "@/features/profile/hooks";
 
 const MIN_PASSWORD_LENGTH = 8;
-const SUCESS_NOTIFICATION_DELAY = 1500;
+const SUCCESS_NOTIFICATION_DELAY = 1500;
 
 // Password Strength Component
 type PasswordStrengthProps = {
@@ -19,7 +19,7 @@ function PasswordStrength({ password }: PasswordStrengthProps) {
 
   const checks = [
     {
-      label: `At least ${MIN_PASSWORD_LENGTH} characters`,
+      label: "At least ${MIN_PASSWORD_LENGTH} characters",
       test: password.length >= MIN_PASSWORD_LENGTH,
     },
     {
@@ -154,7 +154,7 @@ export default function ChangePasswordForm({
       if (onChanged) {
         setTimeout(() => {
           onChanged();
-        }, SUCESS_NOTIFICATION_DELAY);
+        }, SUCCESS_NOTIFICATION_DELAY);
       }
     } catch (err: any) {
       console.error("Error changing password:", err);
@@ -195,7 +195,7 @@ export default function ChangePasswordForm({
       {/* New Password */}
       <Field>
         <FieldLabel htmlFor="newPassword">New Password *</FieldLabel>
-        <FieldDescription>Must be at least 8 characters long</FieldDescription>
+        <FieldDescription>Must be at least {MIN_PASSWORD_LENGTH} characters long</FieldDescription>
         <Input
           id="newPassword"
           type="password"
