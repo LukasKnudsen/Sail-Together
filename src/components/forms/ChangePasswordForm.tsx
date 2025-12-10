@@ -6,6 +6,90 @@ import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { useUpdatePassword } from "@/features/profile/hooks";
 
+const MIN_PASSWORD_LENGTH = 8;
+const SUCCESS_NOTIFICATION_DELAY = 1500;
+
+// Password Strength Component
+type PasswordStrengthProps = {
+  password: string;
+};
+
+function PasswordStrength({ password }: PasswordStrengthProps) {
+  if (password.length === 0) return null;
+
+  const checks = [
+    {
+      label: "At least ${MIN_PASSWORD_LENGTH} characters",
+      test: password.length >= MIN_PASSWORD_LENGTH,
+    },
+    {
+      label: "Contains uppercase letter (recommended)",
+      test: /[A-Z]/.test(password),
+    },
+    {
+      label: "Contains number (recommended)",
+      test: /[0-9]/.test(password),
+    },
+    {
+      label: "Contains special character (recommended)",
+      test: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    },
+  ];
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+      <div className="mb-2 text-xs font-medium text-gray-700">Password Strength:</div>
+      <div className="space-y-1 text-xs">
+        {checks.map((check, index) => (
+          <div
+            key={index}
+            className={cn(
+              "flex items-center gap-2",
+              check.test ? "text-green-600" : "text-gray-400"
+            )}
+          >
+            <div
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                check.test ? "bg-green-600" : "bg-gray-400"
+              )}
+            />
+            {check.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Notification Component
+type NotificationProps = {
+  type: "error" | "success";
+  message: string;
+};
+
+function Notification({ type, message }: NotificationProps) {
+  if (!message) return null;
+
+  const isError = type === "error";
+
+  return (
+    <div
+      role="alert"
+      aria-live="polite"
+      className={cn(
+        "w-full rounded-xl border px-3 py-2 text-center text-sm font-medium",
+        isError
+          ? "bg-destructive/10 text-destructive border-destructive/20"
+          : "border-green-200 bg-green-50 text-green-700"
+      )}
+    >
+      {message}
+    </div>
+  );
+}
+
+// Main Form Component
 type ChangePasswordFormProps = React.ComponentProps<"form"> & {
   onCancel?: () => void;
   onChanged?: () => void;
@@ -27,7 +111,9 @@ export default function ChangePasswordForm({
   const [success, setSuccess] = useState("");
 
   const isFormValid =
-    currentPassword.length > 0 && newPassword.length >= 8 && confirmPassword.length > 0;
+    currentPassword.length > 0 &&
+    newPassword.length >= MIN_PASSWORD_LENGTH &&
+    confirmPassword.length > 0;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -50,8 +136,8 @@ export default function ChangePasswordForm({
     }
 
     // Validate password strength
-    if (newPassword.length < 8) {
-      setError("New password must be at least 6 characters long");
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setError("New password must be at least ${MIN_PASSWORD_LENGTH} characters long");
       return;
     }
 
@@ -68,7 +154,7 @@ export default function ChangePasswordForm({
       if (onChanged) {
         setTimeout(() => {
           onChanged();
-        }, 1500);
+        }, SUCCESS_NOTIFICATION_DELAY);
       }
     } catch (err: any) {
       console.error("Error changing password:", err);
@@ -109,7 +195,7 @@ export default function ChangePasswordForm({
       {/* New Password */}
       <Field>
         <FieldLabel htmlFor="newPassword">New Password *</FieldLabel>
-        <FieldDescription>Must be at least 8 characters long</FieldDescription>
+        <FieldDescription>Must be at least {MIN_PASSWORD_LENGTH} characters long</FieldDescription>
         <Input
           id="newPassword"
           type="password"
@@ -137,91 +223,10 @@ export default function ChangePasswordForm({
       </Field>
 
       {/* Password Strength Indicator */}
-      {newPassword.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-          <div className="mb-2 text-xs font-medium text-gray-700">Password Strength:</div>
-          <div className="space-y-1 text-xs">
-            <div
-              className={cn(
-                "flex items-center gap-2",
-                newPassword.length >= 8 ? "text-green-600" : "text-gray-400"
-              )}
-            >
-              <div
-                className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  newPassword.length >= 8 ? "bg-green-600" : "bg-gray-400"
-                )}
-              />
-              At least 8 characters
-            </div>
-            <div
-              className={cn(
-                "flex items-center gap-2",
-                /[A-Z]/.test(newPassword) ? "text-green-600" : "text-gray-400"
-              )}
-            >
-              <div
-                className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  /[A-Z]/.test(newPassword) ? "bg-green-600" : "bg-gray-400"
-                )}
-              />
-              Contains uppercase letter (recommended)
-            </div>
-            <div
-              className={cn(
-                "flex items-center gap-2",
-                /[0-9]/.test(newPassword) ? "text-green-600" : "text-gray-400"
-              )}
-            >
-              <div
-                className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  /[0-9]/.test(newPassword) ? "bg-green-600" : "bg-gray-400"
-                )}
-              />
-              Contains number (recommended)
-            </div>
-            <div
-              className={cn(
-                "flex items-center gap-2",
-                /[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? "text-green-600" : "text-gray-400"
-              )}
-            >
-              <div
-                className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  /[!@#$%^&*(),.?":{}|<>]/.test(newPassword) ? "bg-green-600" : "bg-gray-400"
-                )}
-              />
-              Contains special character (recommended)
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div
-          role="alert"
-          aria-live="polite"
-          className="bg-destructive/10 text-destructive border-destructive/20 w-full rounded-xl border px-3 py-2 text-center text-sm font-medium"
-        >
-          {error}
-        </div>
-      )}
-
-      {/* Success Message */}
-      {success && (
-        <div
-          role="alert"
-          aria-live="polite"
-          className="w-full rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-center text-sm font-medium text-green-700"
-        >
-          {success}
-        </div>
-      )}
+      <PasswordStrength password={newPassword} />
+      {/* Notifications */}
+      <Notification type="error" message={error} />
+      <Notification type="success" message={success} />
 
       {/* Action Buttons */}
       <div className="flex gap-2">
