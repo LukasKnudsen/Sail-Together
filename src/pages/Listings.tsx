@@ -47,7 +47,7 @@ export default function Listings() {
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {isLoading ? (
                     Array.from({ length: 10 }).map((_, i) => (
-                        <div key={i} className="aspect-square w-full animate-pulse rounded-lg bg-muted" />
+                        <div key={i} className="aspect-square w-full animate-pulse rounded-3xl bg-muted" />
                     ))
                 ) : error ? (
                     <div className="text-destructive col-span-full">
@@ -66,7 +66,6 @@ export default function Listings() {
                                         e.stopPropagation();
                                         toggleFavorite?.(job.id);
                                     }}
-                                    className="aspect-square w-full rounded-lg"
                                     src={job.imageUrl}
                                 />
 
