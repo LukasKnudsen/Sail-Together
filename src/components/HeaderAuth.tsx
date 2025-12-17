@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Briefcase, CircleUserRound, Heart, Map, Menu, Settings } from "lucide-react";
+import { Briefcase, CircleUserRound, Heart, Map, Menu, Settings, LibraryBig } from "lucide-react";
 
 export default function HeaderAuth() {
   const [user, setUser] = useState<Parse.User | null>(null);
@@ -57,6 +57,10 @@ export default function HeaderAuth() {
               <DropdownMenuItem onClick={() => navigate("/add-job")} >
                 <Briefcase strokeWidth={2} />
                 Add Job
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/listings")}>
+                <LibraryBig strokeWidth={2} />
+                Listings
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Map strokeWidth={2} />

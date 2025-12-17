@@ -64,7 +64,7 @@ export async function createSchemas() {
             .addString("vessel", { required: true })
             .addBoolean("isFavorite", { defaultValue: false })
             .addPointer("locationId", "Location", { required: true })
-            .addPointer("createdById", "_User")
+            .addPointer("createdById", "_User", { required: true })
             .addString("description", { required: true })
             .addString("imageUrl"),
         "Job"
