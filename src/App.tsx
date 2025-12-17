@@ -18,6 +18,7 @@ import Test from "@/pages/Test";
 import AddJobPage from "@/pages/AddJobPage";
 import Favourites from "@/pages/Favourites";
 import ProtectedRoute from "./layouts/ProtectedRoute";
+import Listings from "@/pages/Listings";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/add-job" element={<AddJobPage />} />
         <Route path="/events" element={<Events />} />
         <Route path="/favourites" element={<Favourites />} />
+        <Route path="/listings" element={<Listings />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/profile" element={
             <ProtectedRoute>
