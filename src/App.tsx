@@ -19,6 +19,7 @@ import AddJobPage from "@/pages/AddJobPage";
 import Favourites from "@/pages/Favourites";
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import Listings from "@/pages/Listings";
+import EditJobPage from "./pages/EditJobPage";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
 
       <Route element={<RootLayout />}>
         <Route path="/jobs/:jobId" element={<JobPage />} />
+        <Route path="/jobs/:jobId/edit" element={<EditJobPage />} />
         <Route path="/add-job" element={<AddJobPage />} />
         <Route path="/events" element={<Events />} />
         <Route path="/favourites" element={<Favourites />} />

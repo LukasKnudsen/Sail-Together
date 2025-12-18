@@ -6,6 +6,7 @@ import type { JobAttributes } from "@/db/types/Job";
 import CardMedia from "@/components/CardMedia";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 function formatJobDate(date: Date | string | undefined): string {
     if (!date) return "Date TBD";
@@ -56,29 +57,31 @@ export default function Listings() {
                     jobs.map((job) => {
                         const loc = job.locationId as any;
                         return (
-                            <div
-                                aria-label="listing-card"
-                                className={cn("flex aspect-square w-full flex-col gap-2")}
-                            >
-                                <CardMedia
-                                    isFavorite={job.isFavorite ?? false}
-                                    onFavoriteClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleFavorite?.(job.id);
-                                    }}
-                                    src={job.imageUrl}
-                                />
+                            <Link key={job.id} to={`/jobs/${job.id}/edit`}>
+                                <div
+                                    aria-label="listing-card"
+                                    className={cn("flex aspect-square w-full flex-col gap-2")}
+                                >
+                                    <CardMedia
+                                        isFavorite={job.isFavorite ?? false}
+                                        onFavoriteClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleFavorite?.(job.id);
+                                        }}
+                                        src={job.imageUrl}
+                                    />
 
-                                <div className="flex w-full flex-col gap-1 px-1">
-                                    <h3 className="truncate font-semibold leading-tight">{job.title}</h3>
-                                    <p className="text-muted-foreground truncate text-sm leading-none">
-                                        {job.type} · {formatJobDate(job.date)}
-                                    </p>
-                                    <p className="text-muted-foreground truncate text-sm leading-none">
-                                        {loc?.name ?? loc?.address ?? "Location not specified"}
-                                    </p>
+                                    <div className="flex w-full flex-col gap-1 px-1">
+                                        <h3 className="truncate font-semibold leading-tight">{job.title}</h3>
+                                        <p className="text-muted-foreground truncate text-sm leading-none">
+                                            {job.type} · {formatJobDate(job.date)}
+                                        </p>
+                                        <p className="text-muted-foreground truncate text-sm leading-none">
+                                            {loc?.name ?? loc?.address ?? "Location not specified"}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                         );
                     })
                 ) : (
