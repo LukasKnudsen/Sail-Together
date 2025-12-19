@@ -9,14 +9,25 @@ import { Link } from "react-router-dom";
 import { useMemo } from "react";
 import Map from "@/components/map/Map";
 import { jobsToGeoJSON } from "@/lib/jobsToGeoJSON";
+import { useJobStore } from "@/store/useJobStore";
 
 export default function Home() {
-  const { data, isLoading, error } = useSWR("jobs", getJobs, {
-    dedupingInterval: 10 * 60 * 1000,
-    revalidateIfStale: true,
-  });
+  const searchFilters = useJobStore((state) => state.searchFilters);
+  const swrKey = useMemo(
+    () => ["jobs", searchFilters],
+    [searchFilters]
+  );
 
-  const toggleFavorite = useToggleJobFavorite("jobs");
+  const { data, isLoading, error } = useSWR(
+    swrKey,
+    () => getJobs(searchFilters),
+    {
+      dedupingInterval: 10 * 60 * 1000,
+      revalidateIfStale: true,
+    }
+  );
+
+  const toggleFavorite = useToggleJobFavorite(swrKey);
   const mapData = useMemo(() => jobsToGeoJSON(data ?? []), [data]);
 
   return (
