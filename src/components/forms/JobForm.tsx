@@ -4,7 +4,8 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import MapWithGeocoder from "../map/MapWithGeocoder";
 import { useEffect, useState } from "react";
-import { createJob, updateJob } from "@/features/jobs/api";
+import { useNavigate } from "react-router-dom";
+import { createJob, updateJob, deleteJob } from "@/features/jobs/api";
 import { Spinner } from "../ui/spinner";
 import type { Job } from "@/db/types/Job";
 import type { JobWithRelations } from "@/features/jobs/api";
@@ -76,6 +77,7 @@ export default function JobForm({
     stripEmptyArraysOnCreate = true,
     ...props
 }: JobFormProps) {
+    const navigate = useNavigate();
     const [form, setForm] = useState<JobFormState>({
         title: "",
         vessel: "",
@@ -91,6 +93,7 @@ export default function JobForm({
     });
     const [touched, setTouched] = useState<Record<string, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
@@ -199,6 +202,30 @@ export default function JobForm({
             setSuccess(null);
         }
         onCancel?.();
+        navigate("/");
+    };
+
+    const handleDelete = async () => {
+        if (mode !== "edit" || !job) return;
+        const confirmed = window.confirm("Are you sure you want to delete this job?");
+        if (!confirmed) return;
+
+        setError(null);
+        setSuccess(null);
+        setIsDeleting(true);
+        try {
+            await deleteJob(job.id);
+            setSuccess("Job deleted successfully!");
+            resetForm();
+            onSuccess?.();
+            navigate("/", { replace: true });
+            window.location.reload();
+        } catch (err: any) {
+            setError(err instanceof Error ? err.message : "Failed to delete job");
+            console.error("Error deleting job:", err);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     async function handleSubmit(e: React.FormEvent) {
@@ -253,11 +280,13 @@ export default function JobForm({
                 await createJob(createPayload as any);
                 setSuccess(successMessage || "Job created successfully!");
                 onSuccess?.();
+                navigate("/");
                 resetForm();
             } else {
                 await updateJob(job!.id, basePayload as any);
                 setSuccess(successMessage || "Job updated successfully!");
                 onSuccess?.();
+                navigate("/");
             }
         } catch (err: any) {
             setError(err instanceof Error ? err.message : mode === "create" ? "Failed to create job" : "Failed to update job");
@@ -270,8 +299,24 @@ export default function JobForm({
     return (
         <form onSubmit={handleSubmit} className={cn("flex flex-col gap-8 py-4", className)} {...props}>
             <Field>
-                <FieldLabel htmlFor="title">What position are you hiring for?</FieldLabel>
-                <FieldDescription>Select or enter the role you're looking to fill.</FieldDescription>
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <FieldLabel htmlFor="title">What position are you hiring for?</FieldLabel>
+                        <FieldDescription>Select or enter the role you're looking to fill.</FieldDescription>
+                    </div>
+                    {mode === "edit" && job && (
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={isSubmitting || isDeleting}
+                            className="whitespace-nowrap"
+                        >
+                            {isDeleting && <Spinner />}
+                            Delete Job
+                        </Button>
+                    )}
+                </div>
                 <select
                     id="title"
                     className={cn(
