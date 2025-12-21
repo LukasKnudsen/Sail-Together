@@ -6,6 +6,7 @@ import { JobExperience } from "@/db/types/JobExperience";
 import { JobQualification } from "@/db/types/JobQualification";
 import type { _User } from "@/db/types/_User";
 import type { JobAttributes } from "@/db/types/Job";
+import type { JobSearchFilters } from "@/store/useJobStore";
 
 export interface JobWithRelations extends JobAttributes {
     requirements?: Array<{
@@ -39,14 +40,71 @@ function parseToJSON<T>(obj: Job): T {
     } as T;
 }
 
-export async function getJobs(): Promise<JobAttributes[]> {
+const REGION_MAPPING: Record<string, string[]> = {
+    "northern europe": ["denmark", "sweden", "norway", "finland", "iceland", "estonia", "latvia", "lithuania"],
+    "uk": ["united kingdom", "england", "scotland", "wales", "northern ireland", "britain"],
+    "mediterranean": ["spain", "france", "italy", "greece", "croatia", "malta", "cyprus", "turkey"],
+    "caribbean": ["jamaica", "barbados", "bahamas", "antigua", "trinidad", "puerto rico", "virgin islands"],
+    "north america": ["usa", "united states", "canada", "mexico"],
+    "south america": ["brazil", "argentina", "chile", "peru", "colombia", "venezuela"],
+    "pacific": ["australia", "new zealand", "fiji", "tahiti", "polynesia", "micronesia"],
+    "atlantic crossing": ["atlantic", "azores", "canary", "cape verde"],
+    "asia": ["thailand", "singapore", "malaysia", "indonesia", "philippines", "japan", "china"],
+    "africa": ["south africa", "morocco", "egypt", "kenya", "tanzania", "seychelles"],
+};
+
+function matchesRegion(address: string, regionSearch: string): boolean {
+    const normalizedAddress = address.toLowerCase();
+    const normalizedRegion = regionSearch.toLowerCase();
+
+    const countries = REGION_MAPPING[normalizedRegion];
+    if (countries) {
+        return countries.some(country => normalizedAddress.includes(country));
+    }
+
+    return normalizedAddress.includes(normalizedRegion);
+}
+
+export async function getJobs(filters?: JobSearchFilters): Promise<JobAttributes[]> {
     const query = new Parse.Query(Job);
     query.include("locationId");
     query.include("createdById");
     query.descending("createdAt");
 
+    if (filters?.position) {
+        query.matches("title", new RegExp(filters.position, "i"));
+    }
+
+    if (filters?.availability?.from) {
+        const fromDate = filters.availability.from;
+        const startOfDay = new Date(fromDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        query.greaterThanOrEqualTo("date", startOfDay);
+    }
+
+    if (filters?.availability?.to) {
+        const toDate = filters.availability.to;
+        const endOfDay = new Date(toDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        query.lessThanOrEqualTo("date", endOfDay);
+    }
+
     const results = await query.find();
-    return results.map((job) => parseToJSON<JobAttributes>(job));
+    let jobs = results.map((job) => parseToJSON<JobAttributes>(job));
+
+    if (filters?.name) {
+        const searchTerm = filters.name;
+        jobs = jobs.filter((job) => {
+            const location = job.locationId;
+            if (!location) return false;
+            const locationName = location.name || "";
+            const locationAddress = location.address || "";
+
+            return matchesRegion(locationName, searchTerm) || matchesRegion(locationAddress, searchTerm);
+        });
+    }
+
+    return jobs;
 }
 
 export async function getJobById(id: string): Promise<JobWithRelations | null> {

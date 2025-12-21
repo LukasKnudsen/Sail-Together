@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import WhenPanel from "../WhenPanel";
 import OptionItem from "../OptionItem";
+import { useJobStore } from "@/store/useJobStore";
 
 export interface SuggestedLocation {
   name: string;
@@ -30,7 +31,7 @@ export const LOCATIONS: SuggestedLocation[] = [
 ];
 
 export const JOB_TYPE_OPTIONS: JobType[] = [
-  { id: "steeward", label: "Steeward/Stewardess", className: "bg-purple-100" },
+  { id: "steward", label: "Steward/Stewardess", className: "bg-purple-100" },
   { id: "deckhand", label: "Deckhand", className: "bg-green-100" },
   { id: "first-mate", label: "First Mate", className: "bg-yellow-100" },
   { id: "captain", label: "Captain", className: "bg-orange-100" },
@@ -111,13 +112,21 @@ export const searchJobsConfig = {
   } as JobSearchState,
   reducer: jobSearchReducer,
   getTabLabel: (stepId: string, state: JobSearchState) => {
+    const storeFilters = useJobStore.getState().searchFilters;
+    const hasActiveSearch = storeFilters.name || storeFilters.position;
+
     switch (stepId) {
       case "where":
         return state.name ?? "Where";
       case "type":
-        return JOB_TYPE_OPTIONS.find((type) => type.label === state.position)?.label ?? "Type";
+        return state.position
+          ? (JOB_TYPE_OPTIONS.find((type) => type.label === state.position)?.label ?? "Type")
+          : "All Jobs";
       case "when":
-        return labelForRange(state.availability) ?? "When";
+        if (!state.availability?.from) {
+          return hasActiveSearch ? "Anytime" : "When";
+        }
+        return labelForRange(state.availability);
       default:
         return "";
     }
@@ -186,6 +195,12 @@ export const searchJobsConfig = {
 
     return null;
   },
-  canSearch: (state: JobSearchState) =>
-    !!state.name && !!state.position && !!state.availability?.from,
+  canSearch: (state: JobSearchState) => !!state.name,
+  onSearch: (state: JobSearchState) => {
+    useJobStore.getState().setSearchFilters({
+      name: state.name,
+      position: state.position,
+      availability: state.availability,
+    });
+  },
 };
