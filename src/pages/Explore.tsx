@@ -1,87 +1,61 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Container } from "../components/ui/container";
 import { Feed } from "../components/feed/Feed";
-import AddPostPopUp from "../components/feed/AddPostPopUp";
-import type { Post } from "../types/post";
-import avatarImage from "../assets/avatar.png";
-
-const now = Date.now();
-const mockPosts: Post[] = [
-  {
-    id: "1",
-    user: {
-      id: "u1",
-      name: "Amelia R.",
-      avatarUrl: avatarImage,
-    },
-    mediaUrl: "/beach.jpg",
-    mediaAlt: "nice beach",
-    location: { name: "St. Thomas, U.S. Virgin Islands" },
-    createdAt: new Date(now - 1 * 60 * 1000).toISOString(),
-    likeCount: 5,
-    commentCount: 3,
-    hasLiked: false,
-  },
-  {
-    id: "2",
-    user: {
-      id: "u1",
-      name: "Amelia R.",
-      avatarUrl: avatarImage,
-    },
-    mediaUrl: "/greenland.jpg",
-    mediaAlt: "very cold",
-    location: { name: "Nuuk, Greenland" },
-    createdAt: new Date(now - 23 * 60 * 60 * 1000).toISOString(),
-    likeCount: 10,
-    commentCount: 2,
-    hasLiked: true,
-  },
-  {
-    id: "3",
-    user: {
-      id: "u1",
-      name: "Amelia R.",
-      avatarUrl: avatarImage,
-    },
-    mediaUrl: "/copenhagen.jpg",
-    mediaAlt: "funny houses",
-    location: { name: "Copenhagen, Denmark" },
-    createdAt: new Date(now - 71 * 60 * 60 * 1000).toISOString(),
-    likeCount: 8,
-    commentCount: 5,
-    hasLiked: false,
-  },
-];
+import type { PostWithRelations } from "../types/post";
+import { getPostsWithRelations } from "../data/posts";
+import CreatePostForm from "../components/forms/CreatePostForm";
+import { CreatePostPrompt } from "../components/feed/CreatePostButton";
 
 export default function Explore() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [params] = useSearchParams();
-  const navigate = useNavigate();
+  const [posts, setPosts] = useState<PostWithRelations[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  // open when ?addPost=1
-  const isAddPostOpen = useMemo(() => params.get("addPost") === "1", [params]);
-
-  const closeModal = () => {
-    // remove the query param but stay on /explore
-    navigate({ pathname: "/explore" }, { replace: true });
-  };
+  async function loadPosts() {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getPostsWithRelations();
+      setPosts(data);
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to load posts");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   useEffect(() => {
-    const id = setTimeout(() => setPosts(mockPosts), 300);
-    return () => clearTimeout(id);
+    void loadPosts();
   }, []);
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col items-center px-4 pt-6 pb-24">
-      <header className="mb-6 w-full text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Your feed</h1>
-        <p className="text-muted-foreground text-sm">See news from friends</p>
-      </header>
+    <Container>
+      <div className="mx-auto flex max-w-xl flex-col gap-6 py-8">
+        <header className="space-y-1">
+          <h1 className="text-3xl font-semibold tracking-tight">Your feed</h1>
+          <p className="text-sm text-gray-500">See news from friends</p>
+        </header>
 
-      <Feed initialPosts={posts} />
+        <CreatePostPrompt onAddPost={() => setIsCreateOpen(true)} />
 
-      <AddPostPopUp open={isAddPostOpen} onClose={closeModal} />
-    </main>
+        <Feed initialPosts={posts} isLoading={isLoading} error={error} />
+      </div>
+
+      {isCreateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-lg">
+            <CreatePostForm
+              onCancel={() => setIsCreateOpen(false)}
+              onCreated={async () => {
+                setIsCreateOpen(false);
+                await loadPosts();
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </Container>
   );
 }

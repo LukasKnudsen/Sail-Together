@@ -1,12 +1,16 @@
-import type { Job } from "@/types/job";
+import type { JobAttributes } from "@/db/types/Job"
 import type { GenericFeature, GenericFeatureCollection } from "@/types/map";
 
-function jobToFeature(job: Job): GenericFeature {
+function jobToFeature(job: JobAttributes): GenericFeature {
+  if (!job.locationId?.longitude || !job.locationId?.latitude) {
+    throw new Error(`Job ${job.id} missing valid location coordinates`);
+  }
+
   return {
     type: "Feature",
     geometry: {
       type: "Point",
-      coordinates: [job.location.coordinates.longitude, job.location.coordinates.latitude],
+      coordinates: [job.locationId.longitude, job.locationId.latitude],
     },
     properties: {
       id: job.id,
@@ -15,9 +19,19 @@ function jobToFeature(job: Job): GenericFeature {
   };
 }
 
-export function jobsToGeoJSON(jobs: Job[]): GenericFeatureCollection {
+export function jobsToGeoJSON(jobs: JobAttributes[]): GenericFeatureCollection {
   return {
     type: "FeatureCollection",
-    features: jobs.filter((j) => j.location?.coordinates).map((j) => jobToFeature(j)),
+    features: jobs
+      .filter((job) => job.locationId?.longitude && job.locationId?.latitude)
+      .map((job) => {
+        try {
+          return jobToFeature(job);
+        } catch (err) {
+          console.warn(`Failed to convert job ${job.id} to GeoJSON feature:`, err);
+          return null;
+        }
+      })
+      .filter((feature): feature is GenericFeature => feature !== null),
   };
 }

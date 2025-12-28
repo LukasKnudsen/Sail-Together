@@ -8,11 +8,6 @@ export default function RootLayout() {
       <main className="flex flex-1 flex-col gap-4">
         <Outlet />
       </main>
-      <footer>
-        <p className="text-muted-foreground text-center text-sm font-medium select-none">
-          Made with ♥ Sail Together™
-        </p>
-      </footer>
     </div>
   );
 }

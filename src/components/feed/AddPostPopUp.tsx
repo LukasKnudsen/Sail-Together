@@ -1,4 +1,3 @@
-// src/components/feed/AddPostModal.tsx
 type AddPostPopUpProps = {
   open: boolean;
   onClose: () => void;

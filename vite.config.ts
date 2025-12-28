@@ -9,6 +9,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Polyfill for Node.js 'events' module used by Parse SDK
+      events: "events",
     },
+  },
+  optimizeDeps: {
+    include: ["events"],
   },
 });

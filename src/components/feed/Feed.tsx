@@ -1,7 +1,7 @@
-import type { Post } from "@/types/post";
+import type { PostWithRelations } from "@/types/post";
 import { PostCard } from "./PostCard";
 
-type FeedProps = { initialPosts?: Post[]; isLoading?: boolean; error?: string | null };
+type FeedProps = { initialPosts?: PostWithRelations[]; isLoading?: boolean; error?: string | null };
 
 export function Feed({ initialPosts = [], isLoading = false, error = null }: FeedProps) {
   if (isLoading) {

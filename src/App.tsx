@@ -8,16 +8,64 @@ import JobPage from "@/pages/JobPage";
 import RootLayout from "@/layouts/RootLayout";
 import WizardLayout from "@/layouts/WizardLayout";
 import AddListingWizard from "@/pages/add-listing/AddListingWizard";
+import SignUpPage from "@/pages/auth/SignUp";
+import LoginPage from "@/pages/auth/Login";
+import GuestRoute from "@/components/GuestRoute";
+import AuthLayout from "@/layouts/AuthLayout";
+import ProfileEdit from "@/pages/ProfileEdit";
+import MapPageLayout from "@/layouts/MapPageLayout";
+import Test from "@/pages/Test";
+import AddJobPage from "@/pages/AddJobPage";
+import Favourites from "@/pages/Favourites";
+import ProtectedRoute from "./layouts/ProtectedRoute";
+import Listings from "@/pages/Listings";
+import EditJobPage from "./pages/EditJobPage";
 
 function App() {
   return (
     <Routes>
-      <Route element={<RootLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/jobs/:jobId" element={<JobPage />} />
+      <Route element={<MapPageLayout searchType="events" />}>
         <Route path="/events" element={<Events />} />
+        <Route path="/test" element={<Test />} />
+      </Route>
+
+      <Route element={<MapPageLayout searchType="jobs" />}>
+        <Route path="/" element={<Home />} />
+      </Route>
+
+      <Route element={<RootLayout />}>
+        <Route path="/jobs/:jobId" element={<JobPage />} />
+        <Route path="/jobs/:jobId/edit" element={<EditJobPage />} />
+        <Route path="/add-job" element={<AddJobPage />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/favourites" element={<Favourites />} />
+        <Route path="/listings" element={<Listings />} />
         <Route path="/explore" element={<Explore />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+        <Route path="/profile/edit" element={<ProfileEdit />} />
+      </Route>
+
+      <Route element={<AuthLayout />}>
+        <Route
+          path="/signup"
+          element={
+            <GuestRoute>
+              <SignUpPage />
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <LoginPage />
+            </GuestRoute>
+          }
+        />
       </Route>
 
       <Route element={<WizardLayout />}>

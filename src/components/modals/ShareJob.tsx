@@ -7,11 +7,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import type { Job } from "@/types/job";
+import type { JobWithRelations } from "@/features/jobs/api";
 import { Link2, Mail } from "lucide-react";
 
 interface ShareJobProps {
-  job: Job;
+  job: JobWithRelations;
   shareOpen: boolean;
   setShareOpen: (open: boolean) => void;
 }

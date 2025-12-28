@@ -10,9 +10,10 @@ const MAPBOX_API_KEY = import.meta.env.VITE_MAPBOX_API_KEY;
 interface MapProps {
   events?: EventFeatureCollection;
   jobs?: GenericFeatureCollection;
+  onBoundsChange?: (bounds: { ne: [number, number]; sw: [number, number] }) => void;
 }
 
-export default function Map({ events, jobs }: MapProps) {
+export default function Map({ events, jobs, onBoundsChange }: MapProps) {
   const mapRef = useRef<MapboxMap | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,16 +67,35 @@ export default function Map({ events, jobs }: MapProps) {
       setSelectedMarker(null);
     };
 
+    const updateBounds = () => {
+      if (!map || !onBoundsChange) return;
+      const bounds = map.getBounds();
+      if (!bounds) return;
+      onBoundsChange({
+        ne: [bounds.getNorthEast().lng, bounds.getNorthEast().lat],
+        sw: [bounds.getSouthWest().lng, bounds.getSouthWest().lat],
+      });
+    };
+
     map.on("click", onMapClick);
+    map.on("moveend", updateBounds);
+    map.on("zoomend", updateBounds);
+
+    // Initial bounds
+    if (mapLoaded) {
+      updateBounds();
+    }
 
     return () => {
       map.off("click", onMapClick);
+      map.off("moveend", updateBounds);
+      map.off("zoomend", updateBounds);
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, onBoundsChange]);
 
   return (
-    <div className="relative h-full w-full grow overflow-hidden rounded-2xl">
-      <div ref={mapContainerRef} className="absolute inset-0 h-full w-full" />
+    <div className="relative size-full grow overflow-hidden rounded-2xl">
+      <div ref={mapContainerRef} className="absolute inset-0 size-full" />
       {(mapLoaded &&
         events?.features.map((location) => (
           <Marker

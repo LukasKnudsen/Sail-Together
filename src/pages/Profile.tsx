@@ -3,7 +3,7 @@ import CalendarDaysIcon from "@/components/icons/CalendarDaysIcon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Container } from "@/components/ui/container";
 import { Rating } from "@/components/ui/rating";
-import { USER } from "@/data/user";
+import { getUserProfile } from "@/data/user";
 import { Navigate } from "react-router-dom";
 import { format } from "date-fns";
 import LocationPin from "@/components/icons/LocationPin";
@@ -12,14 +12,18 @@ import IconMedal from "@/components/icons/IconMedal";
 import VesselIcon from "@/components/icons/VesselIcon";
 import GlobeIcon from "@/components/icons/GlobeIcon";
 import { Media, MediaFallback } from "@/components/ui/media";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
+  const navigate = useNavigate();
+  const userProfile = getUserProfile();
   const {
     avatarUrl,
     name,
     rating,
     role,
-    joinedDate,
+    createdAt,
     location,
     email,
     phone,
@@ -28,9 +32,9 @@ export default function Profile() {
     skills,
     feedback,
     experiences,
-  } = USER;
+  } = userProfile;
 
-  if (!USER) return <Navigate to="/404" replace />;
+  if (!userProfile) return <Navigate to="/404" replace />;
 
   return (
     <Container className="container mx-auto max-w-3xl p-2">
@@ -44,7 +48,6 @@ export default function Profile() {
           <h1 id="profile-name" className="text-2xl font-bold">
             {name}
           </h1>
-
           <div className="flex items-center gap-2">
             <Rating value={rating ?? 0} max={5} size={24} />
             <span className="sr-only">{rating} out of 5 stars</span>
@@ -55,7 +58,7 @@ export default function Profile() {
               <SuitcaseIcon className="size-6" /> {role}
             </p>
             <p>
-              <CalendarDaysIcon className="size-6" /> Joined {format(joinedDate, "MMM yyyy")}
+              <CalendarDaysIcon className="size-6" /> Joined {createdAt && format(new Date(createdAt), "MMM yyyy")}
             </p>
           </div>
           <p>
@@ -64,6 +67,11 @@ export default function Profile() {
 
           <ContactActions email={email} phone={phone} />
         </header>
+
+          {/* Edit Profile Button - matching Add Listing style */}
+          <Button size={"sm"} variant="secondary" onClick={() => navigate("/profile/edit")} className="max-w-xs mx-auto">
+            Edit Profile
+          </Button>
 
         <section>
           <h2 className="text-xl font-semibold">About Me</h2>
@@ -129,11 +137,11 @@ export default function Profile() {
             {feedback?.map((f) => (
               <li key={f.id} className="bg-muted w-full rounded-2xl p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="leading-none font-semibold">{f.author ?? "Anonymous"}</p>
+                  <p className="leading-none font-semibold">{f.author.name ?? "Anonymous"}</p>
                   {f.createdAt && (
                     <time
                       className="text-muted-foreground text-xs font-medium"
-                      dateTime={f.createdAt}
+                      dateTime={f?.createdAt?.toString() ?? ""}
                     >
                       {format(new Date(f.createdAt), "MMM d, yyyy")}
                     </time>

@@ -1,4 +1,4 @@
-import type { Post } from "@/types/post";
+import type { PostWithRelations } from "@/types/post";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,17 +10,29 @@ import {
 import { useState } from "react";
 
 /** Props to PostCard. */
-type PostCardProps = { post: Post };
+type PostCardProps = { post: PostWithRelations };
 
 /** Returnerer up to two initials. */
 function getUserName(name: string) {
   return name
     .trim()
     .split(" ")
-    .map(s => s[0]?.toUpperCase() ?? "")
+    .map((s) => s[0]?.toUpperCase() ?? "")
     .filter(Boolean)
     .slice(0, 2)
     .join("");
+}
+
+/** Capitalize each word in a name for proper display. */
+function capitalizeName(name: string): string {
+  return name
+    .trim()
+    .split(" ")
+    .map((word) => {
+      if (!word) return "";
+      return word[0].toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
 }
 
 /** Relative time being tracked. */
@@ -44,7 +56,7 @@ export function PostCard({ post }: PostCardProps) {
     createdAt,
     likeCount: initialLikes,
     hasLiked,
-    commentCount
+    commentCount,
   } = post;
 
   const [liked, setLiked] = useState(hasLiked);
@@ -54,10 +66,10 @@ export function PostCard({ post }: PostCardProps) {
   function toggleLike() {
     if (liked) {
       setLiked(false);
-      setLikeCount(c => c - 1);
+      setLikeCount((c) => c - 1);
     } else {
       setLiked(true);
-      setLikeCount(c => c + 1);
+      setLikeCount((c) => c + 1);
     }
   }
 
@@ -67,20 +79,28 @@ export function PostCard({ post }: PostCardProps) {
         name={user.name}
         avatarUrl={user.avatarUrl}
         locationName={location?.name}
-        createdAt={createdAt}
+        createdAt={String(createdAt)}
       />
 
-      <figure className="mt-2 overflow-hidden rounded-2xl">
-        <img
-          src={mediaUrl}
-          alt={mediaAlt ?? "Sail Away post"}
-          className="h-auto w-full"
-          loading="lazy"
-        />
+<figure className="mt-2 overflow-hidden rounded-2xl">
+        <div className="relative w-full aspect-square">
+          <img
+            src={mediaUrl}
+            alt={mediaAlt ?? "Sail Away post"}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        </div>
       </figure>
 
+      {mediaAlt && (
+        <p className="mt-2 px-2 text-sm text-gray-800 break-words">
+          {mediaAlt}
+        </p>
+      )}
+
       <Actions
-        liked={liked}
+        liked={liked ?? false}
         likeCount={likeCount}
         commentCount={commentCount}
         onToggleLike={toggleLike}
@@ -101,16 +121,14 @@ function Header(props: {
   return (
     <header className="flex items-center gap-3 px-2 py-1">
       <Avatar className="h-8 w-8">
-        <AvatarImage src={avatarUrl} alt={name} />
+        {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
         <AvatarFallback>{getUserName(name)}</AvatarFallback>
       </Avatar>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="truncate font-medium">{name}</p>
-          {locationName && (
-            <span className="truncate text-xs text-gray-500">• {locationName}</span>
-          )}
+          <p className="truncate font-medium">{capitalizeName(name)}</p>
+          {locationName && <span className="truncate text-xs text-gray-500">• {locationName}</span>}
         </div>
         <p className="text-xs text-gray-400">{timeAgo(createdAt)}</p>
       </div>
