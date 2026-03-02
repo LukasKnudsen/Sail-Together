@@ -213,3 +213,11 @@ For technical issues or questions regarding the setup and execution of this proj
 ## My Contributions
 
 I co-developed this project as part of a university course.
+
+My primary contributions included:
+
+- Implemented Feed Page
+- Developed API integration / database logic / UI components
+- Refactored and improved code structure
+
+I was actively involved in architectural decisions and frontend and backend implementation.
