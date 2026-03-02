@@ -182,14 +182,7 @@ If the migration script fails:
 - Ensure network connectivity to the Parse Server instance
 - Review the error message in the terminal for specific failure reasons
 
-## Browser Compatibility
 
-This application is designed to work with modern web browsers that support ES6+ JavaScript features. Recommended browsers include:
-
-- Google Chrome (latest version)
-- Mozilla Firefox (latest version)
-- Microsoft Edge (latest version)
-- Safari (latest version)
 
 ## Additional Notes for Examiners
 
