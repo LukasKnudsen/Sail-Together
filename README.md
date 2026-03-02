@@ -209,3 +209,7 @@ For technical issues or questions regarding the setup and execution of this proj
 
 **Version**: 0.0.1  
 **Last Updated**: 02.12.2025
+
+## My Contributions
+
+I co-developed this project as part of a university course.
